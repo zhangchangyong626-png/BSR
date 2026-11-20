@@ -78,6 +78,12 @@
   .search-input { width: 100%; padding: 8px 12px; border: 1px solid #cfd8dc; border-radius: 6px; margin-bottom: 10px; box-sizing: border-box; font-weight: 300;}
   .icp-footer { text-align: center; color: #90a4ae; font-size: 12px; padding: 20px 0; }
   .icp-footer a { color: #90a4ae; text-decoration: none; }
+
+  /* 轮播图预览 */
+  .banner-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 8px 0 14px; }
+  .banner-preview .bp-item { border: 1px solid #eceff1; border-radius: 6px; overflow: hidden; background: #f9fbfd; position: relative; }
+  .banner-preview .bp-item img { width: 100%; height: 80px; object-fit: cover; display: block; background: #eceff1; }
+  .banner-preview .bp-item .bp-idx { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,.55); color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 10px; font-weight: 300;}
 </style>
 </head>
 <body>
@@ -272,6 +278,16 @@
       <div class="form-group">
         <label>5. 捐赠记录 (格式: 捐赠人|金额或物资)</label>
         <textarea id="edit-donations" rows="4" placeholder="某爱心企业|￥10,000"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>6. 首页轮播图 (格式: 图片URL|跳转链接，链接可留空；建议尺寸 600×300)</label>
+        <textarea id="edit-banners" rows="5" placeholder="https://example.com/banner1.jpg|https://example.com/news1
+https://example.com/banner2.jpg|"></textarea>
+        <div style="font-size:12px; color:#90a4ae; margin-top:4px; font-weight:300;">
+          每行一张图，第一段为图片外链，第二段为点击跳转地址（可省略）。图片比例按 600×300 显示，建议上传同比例图片避免裁切。
+        </div>
+        <div id="bannerPreview" class="banner-preview"></div>
       </div>
 
       <button type="submit" class="btn" id="saveContentBtn" style="width:100%; margin-top:10px;">保存全部内容</button>
@@ -674,128 +690,4 @@ window.startEdit = (id) => {
   document.getElementById('title').value = t.title || '';
   document.getElementById('content').value = t.content || '';
   document.getElementById('task_time').value = toLocalInput(t.task_time);
-  document.querySelectorAll('input[name="event_type"]').forEach(r => r.checked = (r.value === t.event_type));
-  resetMemberVisibility();
-  const taskMembers = t.members ? t.members.split(',').map(s => s.trim()) : [];
-  const memberHoursData = t.member_hours || [];
-  document.querySelectorAll('input[name="task_members"]').forEach(cb => {
-    if (taskMembers.includes(cb.value)) {
-      cb.checked = true; toggleHoursInput(cb);
-      const found = memberHoursData.find(x => x.name === cb.value);
-      cb.parentElement.querySelector('.member-hours-input').value = found ? found.hours : (t.duration || 0);
-    } else {
-      cb.checked = false; toggleHoursInput(cb);
-    }
-  });
-  document.getElementById('submitBtn').textContent = '保存修改';
-  document.getElementById('cancelEdit').style.display = 'inline-block';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-document.getElementById('cancelEdit').addEventListener('click', (e) => {
-  e.preventDefault(); document.getElementById('taskForm').reset(); document.getElementById('taskId').value = '';
-  document.getElementById('submitBtn').textContent = '保存记录'; e.target.style.display = 'none'; resetMemberVisibility();
-});
-
-window.exportSingleTaskToCSV = (id) => {
-  const t = allTasks.find(x => String(x.id) === String(id));
-  if(!t) return;
-  let rows = [];
-  rows.push(["云和县蓝天救援队救援记录表"]);
-  const codeStr = String(t.id).padStart(4, '0').slice(-4);
-  rows.push(["事件名称：", t.title, "", "", "代码：", codeStr]);
-  rows.push(["信息登记", "事件时间：", formatTime(t.task_time), "", "事件任务：", t.event_type || ""]);
-  rows.push(["", "事件地点：", t.location || "", "", "", ""]);
-  rows.push(["", "出发时间：", "", "", "结束时间：", ""]);
-  rows.push(["", "现场指挥：", "", "", "现场协调人员：", ""]);
-  rows.push(["", "现场拍照：", "", "", "设备调配：", ""]);
-  rows.push(["", "救助人姓名：", "", "", "家属电话：", ""]);
-  rows.push(["事件", "经过", "", "", "", ""]);
-  rows.push(["", (t.content || "").replace(/\n/g, ' ')]);
-  rows.push(["", "救援人员出勤记录", "", "", "", ""]);
-  
-  const grouped = {};
-  let maxNamesPerRow = 7; 
-  if (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0) {
-    t.member_hours.forEach(m => {
-      const h = parseFloat(m.hours) || 0;
-      if (!grouped[h]) grouped[h] = [];
-      grouped[h].push(m.name);
-    });
-  } else if (t.members && t.duration) {
-    const h = parseFloat(t.duration) || 0;
-    grouped[h] = t.members.split(',').map(s => s.trim()).filter(Boolean);
-  }
-  for (const [hours, names] of Object.entries(grouped)) {
-    for (let i = 0; i < names.length; i += maxNamesPerRow) {
-      rows.push(["参与队员", ...names.slice(i, i + maxNamesPerRow)]); 
-    }
-    rows.push(["", `以上人员记 ${hours} 个小时`]);
-    rows.push([""]);
-  }
-  const csvContent = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-  downloadCSVFile(csvContent, `记录表_${t.title}.csv`);
-};
-document.getElementById('exportAllBtn').addEventListener('click', () => {
-  const headers = ['类型', '名称', '时间', '总时长', '参与成员(个人时长)', '详情'];
-  const rows = allTasks.map(t => [t.event_type||'', t.title||'', formatTime(t.task_time), t.duration||'', (t.member_hours || []).map(m => `${m.name}(${m.hours}h)`).join('、') || t.members, (t.content || '').replace(/\n/g, ' ')]);
-  const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-  downloadCSVFile(csvContent, `全部记录_${new Date().toISOString().split('T')[0]}.csv`);
-});
-document.getElementById('exportMembersBtn').addEventListener('click', () => alert('成员时长汇总导出功能已在之前的版本中实现，此处因篇幅省略。'));
-
-function downloadCSVFile(csvContent, filename) {
-  const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
-  link.download = filename; link.click();
-}
-
-async function loadSettings() {
-  const { data } = await supabase.from('site_settings').select('*');
-  allSettings = data || [];
-}
-function renderSettingsForm() {
-  const getVal = (key) => {
-    const found = allSettings.find(s => s.key === key);
-    return found ? found.content : '';
-  };
-  document.getElementById('edit-intro').value = getVal('intro');
-  document.getElementById('edit-honors').value = getVal('honors');
-  document.getElementById('edit-styles').value = getVal('styles');
-  document.getElementById('edit-skills').value = getVal('skills');
-  document.getElementById('edit-donations').value = getVal('donations');
-}
-
-document.getElementById('contentForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const btn = document.getElementById('saveContentBtn');
-  btn.disabled = true; btn.textContent = '保存中...';
-  
-  const payloads = [
-    { key: 'intro', content: document.getElementById('edit-intro').value },
-    { key: 'honors', content: document.getElementById('edit-honors').value },
-    { key: 'styles', content: document.getElementById('edit-styles').value },
-    { key: 'skills', content: document.getElementById('edit-skills').value },
-    { key: 'donations', content: document.getElementById('edit-donations').value },
-  ];
-
-  for (const p of payloads) {
-    await supabase.from('site_settings').upsert(p);
-  }
-  
-  btn.disabled = false; btn.textContent = '保存全部内容';
-  alert('内容已更新！前台刷新即可查看。');
-  loadSettings();
-});
-
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).catch(() => {
-    const textarea = document.createElement('textarea');
-    textarea.value = text; document.body.appendChild(textarea); textarea.select(); document.execCommand('copy'); document.body.removeChild(textarea);
-  });
-}
-function toLocalInput(t) { if (!t) return ''; const d = new Date(t); const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
-function formatTime(t) { if (!t) return '待定'; const d = new Date(t); if (isNaN(d)) return t; const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
-function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-</script>
-</body>
-</html>
+  document.querySelectorAll('input[name="event_type
