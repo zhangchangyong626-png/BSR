@@ -155,7 +155,7 @@
 
 <header class="app-header">
   <a href="login.html" class="settings-btn">⚙</a>
-  <!-- 首页图片轮播（后台配置了图片才显示；无图片时 header 显示为一条 48px 蓝色空条） -->
+  <!-- 首页图片轮播（后台配置了 ≥1 张图片才显示） -->
   <div id="banner-carousel" class="banner-carousel" style="display:none;">
     <div class="carousel-track" id="carouselTrack"></div>
     <div class="carousel-dots" id="carouselDots"></div>
@@ -446,6 +446,9 @@ function isSafeUrl(u) { return /^(https?:\/\/|\/\/|\/)/i.test(u); }
 
 function renderBanners(raw) {
   const urls = String(raw || '').split('\n').map(s => s.trim()).filter(u => u && isSafeUrl(u));
+  console.log('[轮播] 后台 banners 原始值:', JSON.stringify(raw));
+  console.log('[轮播] 解析出的有效图片地址数量:', urls.length, urls);
+
   const wrap = document.getElementById('banner-carousel');
   const header = document.querySelector('.app-header');
   if (!wrap || !header) return;
@@ -464,7 +467,7 @@ function renderBanners(raw) {
   const dotsBox = document.getElementById('carouselDots');
 
   track.innerHTML = urls.map(u =>
-    `<div class="carousel-slide"><img src="${esc(u)}" alt="宣传图" loading="lazy"></div>`
+    `<div class="carousel-slide"><img src="${esc(u)}" alt="宣传图"></div>`
   ).join('');
 
   dotsBox.innerHTML = urls.length > 1
@@ -478,6 +481,9 @@ function renderBanners(raw) {
   if (urls.length > 1) {
     bindCarouselEvents(track, dotsBox, wrap);
     startAutoPlay();
+    console.log('[轮播] 已启动自动播放，间隔 4000ms');
+  } else {
+    console.log('[轮播] 仅 1 张图片，不启动自动播放（这是正常设计）');
   }
 }
 
@@ -506,7 +512,6 @@ function bindCarouselEvents(track, dotsBox, wrap) {
   if (carouselBound) return;
   carouselBound = true;
 
-  // 圆点点击
   dotsBox.addEventListener('click', e => {
     const d = e.target.closest('.carousel-dot');
     if (!d) return;
@@ -515,7 +520,6 @@ function bindCarouselEvents(track, dotsBox, wrap) {
     startAutoPlay();
   });
 
-  // 触摸滑动
   let startX = 0, startY = 0, dx = 0, swiping = false;
   wrap.addEventListener('touchstart', e => {
     if (carouselCount < 2) return;
