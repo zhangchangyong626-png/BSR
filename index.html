@@ -13,18 +13,12 @@
   
   h1, h2, h3, h4, th, strong, b, .app-title, .modal-title { font-weight: 400 !important; }
 
-  /* 1. 顶部结构（仅保留图片轮播 + 设置按钮） */
-  .app-header { position: relative; background: #0d47a1; min-height: 48px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-  .settings-btn { position: absolute; top: 15px; right: 15px; color: #fff; font-size: 22px; text-decoration: none; opacity: 0.9; z-index: 20; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-
-  /* 首页图片轮播 */
-  .banner-carousel { position: relative; width: 100%; aspect-ratio: 2 / 1; overflow: hidden; background: #0d47a1; }
-  .carousel-track { display: flex; height: 100%; will-change: transform; transition: transform 0.4s ease; }
-  .carousel-slide { flex: 0 0 100%; height: 100%; }
-  .carousel-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .carousel-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; z-index: 5; }
-  .carousel-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.3s; }
-  .carousel-dot.active { background: #fff; width: 18px; border-radius: 4px; }
+  /* 1. 顶部结构 */
+  .app-header { background: #0d47a1; padding: 30px 20px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+  .settings-btn { position: absolute; top: 15px; right: 15px; color: #fff; font-size: 22px; text-decoration: none; opacity: 0.8; }
+  .app-logo { height: 70px; object-fit: contain; margin-bottom: 10px; }
+  .app-title { color: #ffffff; font-size: 24px; margin: 0 0 4px 0; letter-spacing: 1px; line-height: 1.2; }
+  .app-slogan { color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 300; margin: 0; letter-spacing: 1px; line-height: 1.2; }
 
   /* 3. 金刚区 (两排10宫格) */
   .grid-nav { background: #fff; display: grid; grid-template-columns: repeat(5, 1fr); padding: 15px 10px; gap: 15px 5px; margin-bottom: 10px; }
@@ -155,11 +149,9 @@
 
 <header class="app-header">
   <a href="login.html" class="settings-btn">⚙</a>
-  <!-- 首页图片轮播（后台配置了 ≥1 张图片才显示） -->
-  <div id="banner-carousel" class="banner-carousel" style="display:none;">
-    <div class="carousel-track" id="carouselTrack"></div>
-    <div class="carousel-dots" id="carouselDots"></div>
-  </div>
+  <img src="https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png" alt="云和蓝天救援队" class="app-logo">
+  <h1 class="app-title">云和·蓝天救援队</h1>
+  <p class="app-slogan">同在蓝天下 携手为公益 400-600-9958</p>
 </header>
 
 <div class="grid-nav">
@@ -432,126 +424,6 @@ function renderSettingsContent(settings) {
       </div>
     `;
   }).join('') || '<div class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
-
-  renderBanners(getContent('banners', ''));
-}
-
-/* ========== 首页图片轮播 ========== */
-let carouselIndex = 0;
-let carouselCount = 0;
-let carouselTimer = null;
-let carouselBound = false;
-
-function isSafeUrl(u) { return /^(https?:\/\/|\/\/|\/)/i.test(u); }
-
-function renderBanners(raw) {
-  const urls = String(raw || '').split('\n').map(s => s.trim()).filter(u => u && isSafeUrl(u));
-  console.log('[轮播] 后台 banners 原始值:', JSON.stringify(raw));
-  console.log('[轮播] 解析出的有效图片地址数量:', urls.length, urls);
-
-  const wrap = document.getElementById('banner-carousel');
-  const header = document.querySelector('.app-header');
-  if (!wrap || !header) return;
-
-  if (urls.length === 0) {
-    wrap.style.display = 'none';
-    header.style.minHeight = '48px';
-    stopAutoPlay();
-    return;
-  }
-
-  header.style.minHeight = '0';
-  wrap.style.display = 'block';
-
-  const track = document.getElementById('carouselTrack');
-  const dotsBox = document.getElementById('carouselDots');
-
-  track.innerHTML = urls.map(u =>
-    `<div class="carousel-slide"><img src="${esc(u)}" alt="宣传图"></div>`
-  ).join('');
-
-  dotsBox.innerHTML = urls.length > 1
-    ? urls.map((_, i) => `<span class="carousel-dot${i === 0 ? ' active' : ''}" data-index="${i}"></span>`).join('')
-    : '';
-
-  carouselCount = urls.length;
-  carouselIndex = 0;
-  updateCarousel();
-
-  if (urls.length > 1) {
-    bindCarouselEvents(track, dotsBox, wrap);
-    startAutoPlay();
-    console.log('[轮播] 已启动自动播放，间隔 4000ms');
-  } else {
-    console.log('[轮播] 仅 1 张图片，不启动自动播放（这是正常设计）');
-  }
-}
-
-function updateCarousel() {
-  const track = document.getElementById('carouselTrack');
-  if (!track) return;
-  track.style.transition = 'transform 0.4s ease';
-  track.style.transform = `translateX(${-carouselIndex * 100}%)`;
-  document.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === carouselIndex));
-}
-
-function startAutoPlay() {
-  stopAutoPlay();
-  if (carouselCount > 1) {
-    carouselTimer = setInterval(() => {
-      carouselIndex = (carouselIndex + 1) % carouselCount;
-      updateCarousel();
-    }, 4000);
-  }
-}
-function stopAutoPlay() {
-  if (carouselTimer) { clearInterval(carouselTimer); carouselTimer = null; }
-}
-
-function bindCarouselEvents(track, dotsBox, wrap) {
-  if (carouselBound) return;
-  carouselBound = true;
-
-  dotsBox.addEventListener('click', e => {
-    const d = e.target.closest('.carousel-dot');
-    if (!d) return;
-    carouselIndex = Number(d.dataset.index);
-    updateCarousel();
-    startAutoPlay();
-  });
-
-  let startX = 0, startY = 0, dx = 0, swiping = false;
-  wrap.addEventListener('touchstart', e => {
-    if (carouselCount < 2) return;
-    stopAutoPlay();
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    dx = 0; swiping = false;
-    track.style.transition = 'none';
-  }, { passive: true });
-
-  wrap.addEventListener('touchmove', e => {
-    if (carouselCount < 2) return;
-    const moveX = e.touches[0].clientX - startX;
-    const moveY = e.touches[0].clientY - startY;
-    if (!swiping) {
-      if (Math.abs(moveX) > 10 && Math.abs(moveX) > Math.abs(moveY)) swiping = true;
-      else return;
-    }
-    dx = moveX;
-    track.style.transform = `translateX(calc(${-carouselIndex * 100}% + ${dx}px))`;
-  }, { passive: true });
-
-  wrap.addEventListener('touchend', () => {
-    if (carouselCount < 2) return;
-    track.style.transition = 'transform 0.4s ease';
-    if (Math.abs(dx) > 40) {
-      if (dx < 0 && carouselIndex < carouselCount - 1) carouselIndex++;
-      else if (dx > 0 && carouselIndex > 0) carouselIndex--;
-    }
-    updateCarousel();
-    startAutoPlay();
-  });
 }
 
 function renderRecruits() {
