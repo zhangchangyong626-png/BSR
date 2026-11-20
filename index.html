@@ -13,13 +13,9 @@
   
   h1, h2, h3, h4, th, strong, b, .app-title, .modal-title { font-weight: 400 !important; }
 
-  /* 1. 顶部结构 */
-  .app-header { position: relative; background: #0d47a1; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-  .header-default { padding: 30px 20px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  /* 1. 顶部结构（仅保留图片轮播 + 设置按钮） */
+  .app-header { position: relative; background: #0d47a1; min-height: 48px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
   .settings-btn { position: absolute; top: 15px; right: 15px; color: #fff; font-size: 22px; text-decoration: none; opacity: 0.9; z-index: 20; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-  .app-logo { height: 70px; object-fit: contain; margin-bottom: 10px; }
-  .app-title { color: #ffffff; font-size: 24px; margin: 0 0 4px 0; letter-spacing: 1px; line-height: 1.2; }
-  .app-slogan { color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 300; margin: 0; letter-spacing: 1px; line-height: 1.2; }
 
   /* 首页图片轮播 */
   .banner-carousel { position: relative; width: 100%; aspect-ratio: 2 / 1; overflow: hidden; background: #0d47a1; }
@@ -159,18 +155,10 @@
 
 <header class="app-header">
   <a href="login.html" class="settings-btn">⚙</a>
-
-  <!-- 首页图片轮播（后台配置了图片才显示） -->
+  <!-- 首页图片轮播（后台配置了图片才显示；无图片时 header 显示为一条 48px 蓝色空条） -->
   <div id="banner-carousel" class="banner-carousel" style="display:none;">
     <div class="carousel-track" id="carouselTrack"></div>
     <div class="carousel-dots" id="carouselDots"></div>
-  </div>
-
-  <!-- 默认头图（未配置轮播图时显示） -->
-  <div id="header-default" class="header-default">
-    <img src="https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png" alt="云和蓝天救援队" class="app-logo">
-    <h1 class="app-title">云和·蓝天救援队</h1>
-    <p class="app-slogan">同在蓝天下 携手为公益 400-600-9958</p>
   </div>
 </header>
 
@@ -459,17 +447,17 @@ function isSafeUrl(u) { return /^(https?:\/\/|\/\/|\/)/i.test(u); }
 function renderBanners(raw) {
   const urls = String(raw || '').split('\n').map(s => s.trim()).filter(u => u && isSafeUrl(u));
   const wrap = document.getElementById('banner-carousel');
-  const def = document.getElementById('header-default');
-  if (!wrap || !def) return;
+  const header = document.querySelector('.app-header');
+  if (!wrap || !header) return;
 
   if (urls.length === 0) {
     wrap.style.display = 'none';
-    def.style.display = 'flex';
+    header.style.minHeight = '48px';
     stopAutoPlay();
     return;
   }
 
-  def.style.display = 'none';
+  header.style.minHeight = '0';
   wrap.style.display = 'block';
 
   const track = document.getElementById('carouselTrack');
