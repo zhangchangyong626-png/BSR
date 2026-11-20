@@ -16,7 +16,6 @@
   /* 1. 顶部结构 */
   .app-header { background: #0d47a1; padding: 28px 0 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
   .settings-btn { position: absolute; top: 15px; right: 15px; color: #fff; font-size: 22px; text-decoration: none; opacity: 0.8; z-index: 10; }
-  .app-logo { height: 70px; object-fit: contain; margin-bottom: 10px; }
   .app-title { color: #ffffff; font-size: 24px; margin: 12px 0 4px 0; letter-spacing: 1px; line-height: 1.2; }
   .app-slogan { color: rgba(255, 255, 255, 0.75); font-size: 12px; font-weight: 300; margin: 0; letter-spacing: 1px; line-height: 1.2; }
 
@@ -357,6 +356,13 @@
 <script type="module">
 import { supabase } from './supabaseClient.js';
 
+/* ===== 注意：轮播相关变量必须在顶层调用前声明，否则会 TDZ 报错 ===== */
+const DEFAULT_BANNER = 'https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png';
+let bannerCount = 0;
+let bannerIndex = 0;
+let bannerTimer = null;
+let suppressBannerClick = false;
+
 let globalMemberStats = {}; 
 let globalAllTasks = [];
 let globalAllMembers = [];
@@ -385,78 +391,7 @@ renderRecruits();
 renderTasks();
 processTasksData(globalAllTasks);
 
-function renderSettingsContent(settings) {
-  const getContent = (key, defaultVal) => {
-    const s = settings.find(x => x.key === key);
-    return s && s.content ? s.content : defaultVal;
-  };
-
-  document.getElementById('content-intro').textContent = getContent('intro', '暂无介绍。');
-
-  const honors = getContent('honors', '').split('\n').filter(Boolean);
-  document.getElementById('content-honors').innerHTML = honors.map(line => {
-    const parts = line.split('|');
-    return `
-      <div class="honor-item">
-        <div class="honor-icon">🏆</div>
-        <div class="honor-info">
-          <p>${esc(parts[0]) || '荣誉'}</p>
-          <span>${esc(parts[1]) || ''}</span>
-        </div>
-      </div>
-    `;
-  }).join('') || '<div class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
-
-  const styles = getContent('styles', '').split('\n').filter(Boolean);
-  document.getElementById('content-styles').innerHTML = styles.map(line => {
-    const parts = line.split('|');
-    return `
-      <div class="style-card">
-        <img src="${esc(parts[0]) || 'https://via.placeholder.com/150'}" alt="${esc(parts[1])}">
-        <p>${esc(parts[1]) || '风采展示'}</p>
-      </div>
-    `;
-  }).join('') || '<div class="empty" style="grid-column: span 2; text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
-
-  const skills = getContent('skills', '').split('\n').filter(Boolean);
-  document.getElementById('content-skills').innerHTML = skills.map(line => {
-    const parts = line.split('|');
-    return `
-      <li class="skill-item">
-        <span>${esc(parts[0]) || '姓名'}</span>
-        <span>${esc(parts[1]) || '技能'}</span>
-      </li>
-    `;
-  }).join('') || '<li class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</li>';
-
-  const donations = getContent('donations', '').split('\n').filter(Boolean);
-  document.getElementById('content-donations').innerHTML = donations.map(line => {
-    const parts = line.split('|');
-    return `
-      <div class="donate-item">
-        <span class="name">${esc(parts[0]) || '爱心人士'}</span>
-        <span class="amount">${esc(parts[1]) || '捐赠'}</span>
-      </div>
-    `;
-  }).join('') || '<div class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
-
-  // 首页轮播图
-  const bannerLines = getContent('banners', '').split('\n').map(l => l.trim()).filter(Boolean);
-  const banners = bannerLines.map(line => {
-    const parts = line.split('|');
-    return { url: (parts[0] || '').trim(), link: (parts[1] || '').trim() };
-  }).filter(b => b.url);
-  renderBanners(banners);
-}
-
 /* ============ 首页轮播图逻辑 ============ */
-let bannerCount = 0;
-let bannerIndex = 0;
-let bannerTimer = null;
-let suppressBannerClick = false;
-
-const DEFAULT_BANNER = 'https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png';
-
 function renderBanners(list) {
   const carousel = document.getElementById('bannerCarousel');
   const track = document.getElementById('bannerTrack');
@@ -566,6 +501,70 @@ function bindBannerTouch() {
 
   carousel.addEventListener('mouseenter', clearBannerTimer);
   carousel.addEventListener('mouseleave', startBannerTimer);
+}
+
+function renderSettingsContent(settings) {
+  const getContent = (key, defaultVal) => {
+    const s = settings.find(x => x.key === key);
+    return s && s.content ? s.content : defaultVal;
+  };
+
+  document.getElementById('content-intro').textContent = getContent('intro', '暂无介绍。');
+
+  const honors = getContent('honors', '').split('\n').filter(Boolean);
+  document.getElementById('content-honors').innerHTML = honors.map(line => {
+    const parts = line.split('|');
+    return `
+      <div class="honor-item">
+        <div class="honor-icon">🏆</div>
+        <div class="honor-info">
+          <p>${esc(parts[0]) || '荣誉'}</p>
+          <span>${esc(parts[1]) || ''}</span>
+        </div>
+      </div>
+    `;
+  }).join('') || '<div class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
+
+  const styles = getContent('styles', '').split('\n').filter(Boolean);
+  document.getElementById('content-styles').innerHTML = styles.map(line => {
+    const parts = line.split('|');
+    return `
+      <div class="style-card">
+        <img src="${esc(parts[0]) || 'https://via.placeholder.com/150'}" alt="${esc(parts[1])}">
+        <p>${esc(parts[1]) || '风采展示'}</p>
+      </div>
+    `;
+  }).join('') || '<div class="empty" style="grid-column: span 2; text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
+
+  const skills = getContent('skills', '').split('\n').filter(Boolean);
+  document.getElementById('content-skills').innerHTML = skills.map(line => {
+    const parts = line.split('|');
+    return `
+      <li class="skill-item">
+        <span>${esc(parts[0]) || '姓名'}</span>
+        <span>${esc(parts[1]) || '技能'}</span>
+      </li>
+    `;
+  }).join('') || '<li class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</li>';
+
+  const donations = getContent('donations', '').split('\n').filter(Boolean);
+  document.getElementById('content-donations').innerHTML = donations.map(line => {
+    const parts = line.split('|');
+    return `
+      <div class="donate-item">
+        <span class="name">${esc(parts[0]) || '爱心人士'}</span>
+        <span class="amount">${esc(parts[1]) || '捐赠'}</span>
+      </div>
+    `;
+  }).join('') || '<div class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
+
+  // 首页轮播图
+  const bannerLines = getContent('banners', '').split('\n').map(l => l.trim()).filter(Boolean);
+  const banners = bannerLines.map(line => {
+    const parts = line.split('|');
+    return { url: (parts[0] || '').trim(), link: (parts[1] || '').trim() };
+  }).filter(b => b.url);
+  renderBanners(banners);
 }
 
 function renderRecruits() {
