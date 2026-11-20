@@ -8,17 +8,14 @@
 <style>
   :root { --primary: #1565c0; --bg: #f4f5f7; }
   * { box-sizing: border-box; }
-  /* 全局纤细字体 */
   body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; font-weight: 300; background: var(--bg); color: #333; margin: 0; padding-bottom: 20px;}
   
-  /* 统一加粗级别为 400 */
   h1, h2, h3, h4, th, strong, b { font-weight: 400 !important; }
 
   header { background: var(--primary); color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
   .header-title { font-size: 18px; font-weight: 400; }
   .header-actions a { color: #fff; text-decoration: none; margin-left: 15px; font-size: 14px; font-weight: 300;}
 
-  /* 宫格导航 */
   .admin-nav { background: #fff; display: grid; grid-template-columns: repeat(5, 1fr); padding: 15px 10px; gap: 15px 5px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
   .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.1s; }
   .nav-item:active { transform: scale(0.95); }
@@ -32,7 +29,6 @@
   .bg-pink { background: linear-gradient(135deg, #f06292, #d81b60); }
   .bg-green { background: linear-gradient(135deg, #81c784, #388e3c); }
 
-  /* 面板容器 */
   .panel-container { padding: 0 15px; max-width: 900px; margin: 0 auto; }
   .panel { display: none; background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.06); animation: fadeIn 0.3s; }
   .panel.active { display: block; }
@@ -54,18 +50,16 @@
   .btn-green { background: #2e7d32; }
   .btn-blue { background: #1565c0; }
 
-  /* 表单排版 */
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   @media(max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
 
-  /* 标签 */
   .tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: 300;}
   .tag-blue { background: #e3f2fd; color: #1565c0; }
   .tag-orange { background: #fff3e0; color: #e65100; }
   .tag-green { background: #e8f5e9; color: #2e7d32; }
   .tag-gray { background: #eceff1; color: #78909c; }
   
-  /* ================= 手机适配卡片列表 ================= */
+  /* 卡片列表 */
   .mobile-card-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
   .mobile-card { background: #fff; border: 1px solid #eceff1; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
   
@@ -78,12 +72,12 @@
   
   .mc-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; border-top: 1px dashed #eee; padding-top: 10px;}
 
-  /* 滚动条美化 */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: #cfd8dc; border-radius: 3px; }
 
-  /* 搜索框 */
   .search-input { width: 100%; padding: 8px 12px; border: 1px solid #cfd8dc; border-radius: 6px; margin-bottom: 10px; box-sizing: border-box; font-weight: 300;}
+  .icp-footer { text-align: center; color: #90a4ae; font-size: 12px; padding: 20px 0; }
+  .icp-footer a { color: #90a4ae; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -96,7 +90,6 @@
   </div>
 </header>
 
-<!-- 宫格导航 -->
 <div class="admin-nav">
   <div class="nav-item" onclick="switchPanel('panel-members')">
     <div class="nav-icon bg-blue"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
@@ -121,7 +114,6 @@
 </div>
 
 <div class="panel-container">
-
   <!-- 1. 队员审核 -->
   <div id="panel-members" class="panel active">
     <h2>队员名单与审核</h2>
@@ -187,7 +179,6 @@
       </div>
     </form>
 
-    <!-- 卡片列表替换表格 -->
     <div id="recruitCardList" class="mobile-card-list"></div>
   </div>
 
@@ -249,7 +240,6 @@
       <button class="btn btn-sm btn-gray" id="exportAllBtn">导出记录</button>
     </div>
 
-    <!-- 卡片列表替换表格 -->
     <div id="taskCardList" class="mobile-card-list"></div>
   </div>
 
@@ -287,8 +277,13 @@
       <button type="submit" class="btn" id="saveContentBtn" style="width:100%; margin-top:10px;">保存全部内容</button>
     </form>
   </div>
-
 </div>
+
+<!-- 底部版权与备案号 -->
+<footer class="icp-footer">
+  <div style="margin-bottom: 5px;">云和·蓝天救援队 · 管理后台</div>
+  <a href="https://beian.miit.gov.cn/" target="_blank">浙ICP备2026012945号-2</a>
+</footer>
 
 <script type="module">
 import { supabase } from './supabaseClient.js';
@@ -417,7 +412,6 @@ async function loadRecruits() {
   allSignups = sRes.data || [];
 }
 
-// ========== 重构：招募卡片渲染 ==========
 function renderRecruits() {
   const container = document.getElementById('recruitCardList');
   if (allRecruits.length === 0) { 
@@ -552,7 +546,6 @@ async function loadTasks() {
   allTasks = data || [];
 }
 
-// ========== 重构：历史记录卡片渲染 ==========
 function renderTasks(filterText = '') {
   const container = document.getElementById('taskCardList');
   if (!allTasks || allTasks.length === 0) { 
