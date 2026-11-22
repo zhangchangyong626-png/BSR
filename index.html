@@ -69,8 +69,8 @@
   .detail-badge.fire { border-color: #ef9a9a; color: #c62828; background: #ffebee; }
 
   /* 4. 列表 Tab */
-  .tabs { background: #fff; display: flex; padding: 10px 15px; gap: 20px; border-bottom: 1px solid #eee; align-items: center;}
-  .tab-item { font-size: 15px; font-weight: 300; color: #666; cursor: pointer; position: relative; padding-bottom: 5px; }
+  .tabs { background: #fff; display: flex; padding: 10px 15px; gap: 18px; border-bottom: 1px solid #eee; align-items: center; overflow-x: auto; white-space: nowrap;}
+  .tab-item { font-size: 15px; font-weight: 300; color: #666; cursor: pointer; position: relative; padding-bottom: 5px; flex-shrink: 0;}
   .tab-item.active { color: #333; font-weight: 400; }
   .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; background: var(--primary); border-radius: 2px; }
 
@@ -99,12 +99,16 @@
 
   /* 6. 历史活动列表 */
   .task-list { padding: 0 10px; }
-  .task-card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; gap: 10px; }
+  .task-card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; gap: 10px; cursor: pointer; transition: box-shadow .2s; }
+  .task-card:active { box-shadow: 0 0 0 2px #e3f2fd; }
   .task-card-avatar { width: 40px; height: 40px; border-radius: 50%; background: #e3f2fd; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #1565c0; font-size: 16px; font-weight: 400;}
-  .task-content { flex: 1; }
+  .task-content { flex: 1; min-width: 0;}
   .task-title { font-size: 15px; margin-bottom: 5px; color: #333; }
   .task-meta { font-size: 12px; color: #999; margin-bottom: 5px; }
-  .task-members { font-size: 13px; color: #666; background: #f9fbfd; padding: 6px; border-radius: 4px; }
+  .task-members { font-size: 13px; color: #666; background: #f9fbfd; padding: 6px; border-radius: 4px; word-break: break-all;}
+  .task-thumbs { display: flex; gap: 4px; margin-top: 6px; }
+  .task-thumbs img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; background: #eee;}
+  .task-more { font-size: 12px; color: #1565c0; align-self: center;}
 
   /* 7. 底部 TabBar & 备案号 */
   .bottom-tab { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 600px; background: #fff; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #eee; z-index: 100; }
@@ -150,6 +154,36 @@
   .donate-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; font-size: 14px; }
   .donate-item .name { color: #333; font-weight: 400; }
   .donate-item .amount { color: #e53935; font-weight: 400; }
+
+  /* 任务详情弹窗 */
+  .task-detail-meta { font-size: 13px; color: #607d8b; margin-bottom: 6px; }
+  .task-detail-meta span { color: #90a4ae; margin-right: 4px; }
+  .task-detail-content { font-size: 14px; color: #444; background: #f9fbfd; padding: 10px; border-radius: 6px; margin: 10px 0; white-space: pre-wrap; line-height: 1.7;}
+  .task-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px;}
+  .task-photo-grid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; background: #eee; cursor: pointer;}
+  .member-hours-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;}
+  .member-hours-tag { font-size: 12px; background: #e3f2fd; color: #1565c0; padding: 3px 8px; border-radius: 12px; font-weight: 300;}
+  .member-hours-tag.me { background: #fff3e0; color: #e65100; font-weight: 400;}
+
+  /* 个人中心 */
+  .me-hint { font-size: 13px; color: #78909c; line-height: 1.7; margin: 0 0 14px; font-weight: 300;}
+  .me-summary { background: linear-gradient(135deg, #1565c0, #42a5f5); color: #fff; border-radius: 10px; padding: 16px; text-align: center; margin-bottom: 14px;}
+  .me-summary .me-name { font-size: 17px; font-weight: 400; }
+  .me-summary .me-total { font-size: 32px; font-weight: 400; margin: 4px 0 2px; }
+  .me-summary .me-total small { font-size: 14px; font-weight: 300; opacity: .85;}
+  .me-cats { display: flex; justify-content: center; gap: 10px; font-size: 12px; opacity: .95; flex-wrap: wrap;}
+  .me-section-title { font-size: 14px; color: #333; font-weight: 400; margin: 16px 0 8px; border-left: 3px solid #1565c0; padding-left: 8px;}
+  .me-event { padding: 10px 0; border-bottom: 1px dashed #eceff1; cursor: pointer; }
+  .me-event:last-child { border-bottom: none; }
+  .me-event .me-event-title { font-size: 14px; color: #333; }
+  .me-event .me-event-meta { font-size: 12px; color: #999; margin-top: 3px;}
+  .me-empty { font-size: 13px; color: #b0bec5; text-align: center; padding: 16px 0; font-weight: 300;}
+  .me-logout { margin-top: 16px; background: #eceff1; color: #546e7a; }
+
+  /* 照片查看器 */
+  #photoViewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 2000; align-items: center; justify-content: center; }
+  #photoViewer img { max-width: 96%; max-height: 92%; object-fit: contain; }
+  #photoViewer .pv-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 30px; font-weight: 300; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -229,10 +263,11 @@
   <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#1565c0;"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
   历史活动记录
 </div>
-<div class="tabs">
-  <div class="tab-item active">全部</div>
-  <div class="tab-item">救援</div>
-  <div class="tab-item">培训</div>
+<div class="tabs" id="historyTabs">
+  <div class="tab-item active" data-type="all">全部</div>
+  <div class="tab-item" data-type="公益救援">救援</div>
+  <div class="tab-item" data-type="技能培训">培训</div>
+  <div class="tab-item" data-type="森林消防">森林消防</div>
 </div>
 <div id="task-list" class="task-list" style="padding-top: 10px;"></div>
 
@@ -251,7 +286,7 @@
     <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
     查询
   </div>
-  <div class="tab-btn" onclick="alert('请使用管理员账号登录电脑端后台进行管理。')">
+  <div class="tab-btn" onclick="openMe()">
     <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
     我的
   </div>
@@ -265,6 +300,30 @@
     <div class="input-group"><input type="text" id="queryNameInput" placeholder="请输入真实姓名"></div>
     <button class="btn-block" onclick="doQuery()">立即查询</button>
     <div id="queryResult" style="margin-top:15px; font-size:14px; color:#333; font-weight: 300;"></div>
+  </div>
+</div>
+
+<div id="modal-me" class="modal">
+  <div class="modal-content">
+    <div class="close-btn" onclick="closeModal('modal-me')">×</div>
+    <div class="modal-title">我的</div>
+
+    <div id="meLoginView">
+      <p class="me-hint">队员登录后可查看自己的出勤时长和参与事件。<br>默认密码为 <strong>0000</strong>，如已修改请使用新密码。</p>
+      <div class="input-group"><input id="meName" placeholder="真实姓名"></div>
+      <div class="input-group"><input id="mePwd" type="password" placeholder="密码"></div>
+      <button class="btn-block" onclick="memberLogin()" id="meLoginBtn">登 录</button>
+    </div>
+
+    <div id="meProfileView" style="display:none"></div>
+  </div>
+</div>
+
+<div id="modal-task" class="modal">
+  <div class="modal-content">
+    <div class="close-btn" onclick="closeModal('modal-task')">×</div>
+    <div class="modal-title" id="taskDetailTitle">活动详情</div>
+    <div id="taskDetailBody"></div>
   </div>
 </div>
 
@@ -349,6 +408,11 @@
   </div>
 </div>
 
+<div id="photoViewer" onclick="closePhotoViewer()">
+  <span class="pv-close">×</span>
+  <img id="photoViewerImg" src="" alt="照片">
+</div>
+
 <script type="module">
 import { supabase } from './supabaseClient.js';
 
@@ -364,6 +428,8 @@ let globalAllTasks = [];
 let globalAllMembers = [];
 let recruitsResData = null;
 let signupsResData = null;
+let currentMember = null; // { id, name }
+let currentTypeFilter = 'all';
 const CONTACT_PASSWORD = "9958";
 
 const { data: { session } } = await supabase.auth.getSession();
@@ -382,10 +448,27 @@ recruitsResData = recruitsRes.data || [];
 signupsResData = signupsRes.data || [];
 const allSettings = settingsRes.data || [];
 
+// 恢复登录态
+const savedMemberName = sessionStorage.getItem('member_name');
+if (savedMemberName && globalAllMembers.some(m => m.name === savedMemberName)) {
+  currentMember = { name: savedMemberName };
+}
+
 renderSettingsContent(allSettings);
 renderRecruits();
 renderTasks();
 processTasksData(globalAllTasks);
+bindHistoryTabs();
+
+/* ============ 工具 ============ */
+function getPhotos(t) {
+  if (!t || !t.photos) return [];
+  if (Array.isArray(t.photos)) return t.photos.filter(Boolean);
+  try {
+    const p = JSON.parse(t.photos);
+    return Array.isArray(p) ? p.filter(Boolean) : [];
+  } catch { return []; }
+}
 
 /* ============ 首页轮播图逻辑 ============ */
 function renderBanners(list) {
@@ -501,6 +584,7 @@ function bindBannerTouch() {
   carousel.addEventListener('mouseleave', startBannerTimer);
 }
 
+/* ============ 内容设置 ============ */
 function renderSettingsContent(settings) {
   const getContent = (key, defaultVal) => {
     const s = settings.find(x => x.key === key);
@@ -556,7 +640,6 @@ function renderSettingsContent(settings) {
     `;
   }).join('') || '<div class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
 
-  // 首页轮播图
   const bannerLines = getContent('banners', '').split('\n').map(l => l.trim()).filter(Boolean);
   const banners = bannerLines.map(line => {
     const parts = line.split('|');
@@ -565,6 +648,7 @@ function renderSettingsContent(settings) {
   renderBanners(banners);
 }
 
+/* ============ 招募 ============ */
 function renderRecruits() {
   const container = document.getElementById('recruit-list');
   if (!recruitsResData || recruitsResData.length === 0) {
@@ -618,6 +702,18 @@ function renderRecruits() {
   }).join('');
 }
 
+/* ============ 历史活动 ============ */
+function bindHistoryTabs() {
+  document.querySelectorAll('#historyTabs .tab-item').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('#historyTabs .tab-item').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+      currentTypeFilter = el.dataset.type || 'all';
+      renderTasks();
+    });
+  });
+}
+
 function renderTasks() {
   const container = document.getElementById('task-list');
   if (!globalAllTasks || globalAllTasks.length === 0) {
@@ -625,23 +721,70 @@ function renderTasks() {
     return;
   }
 
-  container.innerHTML = globalAllTasks.map(t => {
+  let list = globalAllTasks;
+  if (currentTypeFilter !== 'all') {
+    list = list.filter(t => (t.event_type || '') === currentTypeFilter);
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="text-align:center; color:#999; padding:20px; font-weight:300;">该分类下暂无记录</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(t => {
     let membersStr = (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0) 
       ? t.member_hours.map(m => `${esc(m.name)}(${m.hours}h)`).join('、') : (t.members || '-');
+    const photos = getPhotos(t);
+    const thumbs = photos.slice(0, 4).map(u =>
+      `<img src="${esc(u)}" alt="照片" onclick="event.stopPropagation();viewPhoto('${esc(u)}')">`).join('');
 
     return `
-      <div class="task-card">
+      <div class="task-card" onclick="openTaskDetail('${t.id}')">
         <div class="task-card-avatar">记</div>
         <div class="task-content">
           <div class="task-title">${esc(t.title)}</div>
           <div class="task-meta">类型：${esc(t.event_type) || '无'} | 时间：${formatTime(t.task_time)}</div>
           <div class="task-members"><strong>参与队员：</strong>${membersStr}</div>
+          ${photos.length ? `<div class="task-thumbs">${thumbs}${photos.length > 4 ? `<span class="task-more">+${photos.length - 4}</span>` : ''}</div>` : ''}
         </div>
       </div>
     `;
   }).join('');
 }
 
+window.openTaskDetail = (id) => {
+  const t = globalAllTasks.find(x => String(x.id) === String(id));
+  if (!t) return;
+  const photos = getPhotos(t);
+  const mh = Array.isArray(t.member_hours) ? t.member_hours : [];
+  const memberHtml = mh.length
+    ? mh.map(m => `<span class="member-hours-tag${currentMember && m.name === currentMember.name ? ' me' : ''}">${esc(m.name)} · ${esc(String(m.hours))}h</span>`).join('')
+    : `<span class="member-hours-tag">${esc(t.members || '-')}</span>`;
+
+  document.getElementById('taskDetailTitle').textContent = t.title || '活动详情';
+  document.getElementById('taskDetailBody').innerHTML = `
+    <div class="task-detail-meta"><span>类型：</span>${esc(t.event_type) || '无'}</div>
+    <div class="task-detail-meta"><span>时间：</span>${formatTime(t.task_time)}</div>
+    <div class="task-detail-meta"><span>总时长：</span>${esc(t.duration || '-')} 小时</div>
+    ${t.content ? `<div class="task-detail-content">${esc(t.content)}</div>` : ''}
+    <div class="me-section-title" style="margin-top:8px;">参与队员及个人时长</div>
+    <div class="member-hours-list">${memberHtml}</div>
+    ${photos.length ? `<div class="me-section-title" style="margin-top:12px;">活动照片 (${photos.length})</div>
+      <div class="task-photo-grid">${photos.map(u => `<img src="${esc(u)}" alt="照片" onclick="viewPhoto('${esc(u)}')">`).join('')}</div>` : ''}
+  `;
+  openModal('modal-task');
+};
+
+window.viewPhoto = (url) => {
+  const viewer = document.getElementById('photoViewer');
+  document.getElementById('photoViewerImg').src = url;
+  viewer.style.display = 'flex';
+};
+window.closePhotoViewer = () => {
+  document.getElementById('photoViewer').style.display = 'none';
+};
+
+/* ============ 分享 ============ */
 function generateShareText(r, signups) {
   let siteUrl = window.location.href.split('?')[0];
   let text = `【云和·蓝天救援队 任务招募】\n\n`;
@@ -732,6 +875,7 @@ window.closeShareModal = () => {
   location.reload();
 };
 
+/* ============ 个人查询 ============ */
 window.doQuery = () => {
   const name = document.getElementById('queryNameInput').value.trim();
   const res = document.getElementById('queryResult');
@@ -753,6 +897,101 @@ window.doQuery = () => {
   `;
 };
 
+/* ============ 队员登录 / 个人中心 ============ */
+window.openMe = () => {
+  renderMe();
+  openModal('modal-me');
+};
+
+window.memberLogin = async () => {
+  const name = document.getElementById('meName').value.trim();
+  const pwd = document.getElementById('mePwd').value.trim();
+  if (!name) { alert('请输入姓名'); return; }
+  if (!pwd) { alert('请输入密码'); return; }
+
+  const btn = document.getElementById('meLoginBtn');
+  btn.disabled = true; btn.textContent = '登录中...';
+
+  // 注意：查询时把 password 作为过滤条件，避免把密码字段返回前端
+  const { data, error } = await supabase
+    .from('members')
+    .select('id,name,phone')
+    .eq('name', name)
+    .eq('password', pwd)
+    .eq('status', '在队')
+    .maybeSingle();
+
+  btn.disabled = false; btn.textContent = '登 录';
+
+  if (error) { alert('登录失败：' + error.message); return; }
+  if (!data) { alert('姓名或密码错误，或该队员尚未通过审核'); return; }
+
+  currentMember = { id: data.id, name: data.name };
+  sessionStorage.setItem('member_name', data.name);
+  document.getElementById('mePwd').value = '';
+  renderMe();
+};
+
+window.memberLogout = () => {
+  currentMember = null;
+  sessionStorage.removeItem('member_name');
+  renderMe();
+};
+
+function renderMe() {
+  const loginView = document.getElementById('meLoginView');
+  const profileView = document.getElementById('meProfileView');
+  if (!loginView || !profileView) return;
+
+  if (!currentMember) {
+    loginView.style.display = 'block';
+    profileView.style.display = 'none';
+    return;
+  }
+
+  loginView.style.display = 'none';
+  profileView.style.display = 'block';
+
+  const name = currentMember.name;
+  const stat = globalMemberStats[name] || { total: 0, rescue: 0, training: 0, fire: 0 };
+  const fmt = n => parseFloat((n || 0).toFixed(1));
+
+  const myTasks = globalAllTasks.filter(t => {
+    const mh = Array.isArray(t.member_hours) ? t.member_hours : [];
+    if (mh.length) return mh.some(m => m.name === name);
+    return (t.members || '').split(',').map(s => s.trim()).includes(name);
+  });
+
+  const myHours = (t) => {
+    const mh = Array.isArray(t.member_hours) ? t.member_hours : [];
+    const found = mh.find(m => m.name === name);
+    return found ? (parseFloat(found.hours) || 0) : (parseFloat(t.duration) || 0);
+  };
+
+  profileView.innerHTML = `
+    <div class="me-summary">
+      <div class="me-name">${esc(name)}</div>
+      <div class="me-total">${fmt(stat.total)}<small> 小时</small></div>
+      <div class="me-cats">
+        <span>公益救援 ${fmt(stat.rescue)}h</span>
+        <span>技能培训 ${fmt(stat.training)}h</span>
+        <span>森林消防 ${fmt(stat.fire)}h</span>
+      </div>
+    </div>
+
+    <div class="me-section-title">我参与的事件 (${myTasks.length})</div>
+    ${myTasks.length ? myTasks.map(t => `
+      <div class="me-event" onclick="closeModal('modal-me');openTaskDetail('${t.id}')">
+        <div class="me-event-title">${esc(t.title)}</div>
+        <div class="me-event-meta">${formatTime(t.task_time)} · ${esc(t.event_type) || '无'} · 我的时长 ${myHours(t)}h</div>
+      </div>
+    `).join('') : '<div class="me-empty">暂无参与记录</div>'}
+
+    <button class="btn-block me-logout" onclick="memberLogout()">退出登录</button>
+  `;
+}
+
+/* ============ 通讯录 / 申请 ============ */
 window.unlockContacts = () => {
   const pwd = document.getElementById('contactPassword').value;
   if (pwd === CONTACT_PASSWORD) {
@@ -779,22 +1018,25 @@ window.submitApply = async () => {
   
   btn.disabled = true; btn.textContent = '提交中...';
   
-  const { error } = await supabase.from('members').insert({
-    name, 
-    phone: document.getElementById('applyPhone').value.trim(), 
-    emergency_contact: document.getElementById('applyEmergency').value.trim(), 
-    status: '待审核'
-  });
+  const payload = {
+    name,
+    phone: document.getElementById('applyPhone').value.trim(),
+    emergency_contact: document.getElementById('applyEmergency').value.trim(),
+    status: '待审核',
+    password: '0000'
+  };
+  const { error } = await supabase.from('members').insert(payload);
   
   btn.disabled = false; btn.textContent = '提交申请';
   
   if (error) alert('提交失败：' + error.message);
   else {
-    alert('提交成功！请等待管理员审核。');
+    alert('提交成功！请等待管理员审核，审核通过后可用姓名 + 默认密码 0000 登录。');
     closeModal('modal-apply');
   }
 };
 
+/* ============ 出勤榜单 ============ */
 window.toggleChart = () => {
   const chartDiv = document.getElementById('chart-section');
   if (chartDiv.style.display === 'block') {
@@ -888,6 +1130,7 @@ window.scrollToHistory = () => {
 window.openModal = (id) => { document.getElementById(id).style.display = 'flex'; };
 window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
 
+/* ============ 统计 ============ */
 function processTasksData(tasks) {
   globalMemberStats = {};
   tasks.forEach(t => {
