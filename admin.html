@@ -97,6 +97,17 @@
   .photo-preview .pp-item { position: relative; border-radius: 6px; overflow: hidden; background: #eee; }
   .photo-preview .pp-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;}
   .photo-preview .pp-del { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; border: none; font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+  /* 队员风采可视化编辑器 */
+  .style-editor { background: #f9fbfd; border: 1px dashed #cfd8dc; border-radius: 8px; padding: 12px; }
+  .style-editor .style-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .style-editor .style-item { border: 1px solid #eceff1; border-radius: 8px; overflow: hidden; background: #fff; position: relative; }
+  .style-editor .style-item img { width: 100%; height: 110px; object-fit: cover; display: block; background: #eee; cursor: pointer; }
+  .style-editor .style-item .si-del { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; border: none; font-size: 14px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .style-editor .style-item input[type="text"] { width: 100%; border: none; border-top: 1px solid #eceff1; padding: 6px 8px; font-size: 12px; outline: none; font-family: inherit; font-weight: 300; background: #fff;}
+  .style-editor .si-empty { text-align: center; color: #b0bec5; font-size: 13px; padding: 20px 0; font-weight: 300;}
+  .style-editor .si-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .style-editor .si-hint { font-size: 12px; color: #90a4ae; margin-top: 6px; font-weight: 300;}
 </style>
 </head>
 <body>
@@ -291,8 +302,15 @@
       </div>
 
       <div class="form-group">
-        <label>3. 队员风采 (格式: 图片URL|描述文字)</label>
-        <textarea id="edit-styles" rows="4" placeholder="https://图片地址.jpg|水域救援演练"></textarea>
+        <label>3. 队员风采（上传图片 + 描述）</label>
+        <div class="style-editor">
+          <div id="styleList" class="style-list"></div>
+          <div class="si-actions">
+            <input type="file" id="stylePhotoInput" accept="image/*" multiple style="font-size:13px;">
+            <button type="button" class="btn btn-sm btn-green" id="styleUploadBtn" onclick="addStylePhotos()">上传所选图片</button>
+          </div>
+          <div class="si-hint">支持 jpg/png/webp，可一次多选；上传后可在下方填写描述，保存内容时一并提交。建议图片比例 4:3 或 1:1。</div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -341,6 +359,8 @@ let allSettings = [];
 
 // 当前编辑任务已有的照片 URL 列表
 let taskPhotos = [];
+// 队员风采条目 [{url, desc}]
+let styleItems = [];
 
 const STORAGE_BUCKET = 'task-photos';
 
@@ -725,12 +745,13 @@ async function compressImage(file, maxW = 1600, quality = 0.82) {
   }
 }
 
-async function uploadPhotos(files) {
+async function uploadPhotos(files, prefix = '') {
   const urls = [];
   for (const raw of files) {
     const file = await compressImage(raw);
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-    const path = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const name = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const path = prefix ? `${prefix}/${name}` : name;
     const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, {
       cacheControl: '31536000',
       upsert: false,
@@ -768,14 +789,9 @@ document.getElementById('taskForm').addEventListener('submit', async (e) => {
   const newFiles = fileInput && fileInput.files ? Array.from(fileInput.files) : [];
 
   const oldText = submitBtn.textContent;
-  if (newFiles.length > 0) {
-    submitBtn.disabled = true;
-    submitBtn.textContent = `上传照片中 (0/${newFiles.length})...`;
-  }
-
   let uploadedUrls = [];
   if (newFiles.length > 0) {
-    // 逐张上传以便显示进度
+    submitBtn.disabled = true;
     for (let i = 0; i < newFiles.length; i++) {
       submitBtn.textContent = `上传照片中 (${i + 1}/${newFiles.length})...`;
       const urls = await uploadPhotos([newFiles[i]]);
@@ -858,7 +874,6 @@ window.startEdit = (id) => {
   document.querySelectorAll('input[name="event_type"]').forEach(r => r.checked = (r.value === t.event_type));
   resetMemberVisibility();
 
-  // 加载已有照片
   taskPhotos = getPhotos(t);
   document.getElementById('taskPhotoInput').value = '';
   renderPhotoPreview();
@@ -955,13 +970,72 @@ function renderSettingsForm() {
   };
   document.getElementById('edit-intro').value = getVal('intro');
   document.getElementById('edit-honors').value = getVal('honors');
-  document.getElementById('edit-styles').value = getVal('styles');
   document.getElementById('edit-skills').value = getVal('skills');
   document.getElementById('edit-donations').value = getVal('donations');
   document.getElementById('edit-banners').value = getVal('banners');
   renderBannerPreview(getVal('banners'));
+
+  // 队员风采：解析成可视化条目
+  styleItems = parseStyleItems(getVal('styles'));
+  renderStyleItems();
 }
 
+/* ====== 队员风采：文本 ⇄ 可视化互转 ====== */
+function parseStyleItems(text) {
+  return (text || '').split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+    const parts = line.split('|');
+    return { url: (parts[0] || '').trim(), desc: (parts[1] || '').trim() };
+  }).filter(x => x.url);
+}
+function serializeStyleItems() {
+  return styleItems.map(it => `${it.url}|${it.desc || ''}`).join('\n');
+}
+function renderStyleItems() {
+  const box = document.getElementById('styleList');
+  if (!box) return;
+  if (styleItems.length === 0) {
+    box.innerHTML = '<div class="si-empty" style="grid-column: 1/-1;">尚未添加队员风采，选择图片后点击“上传所选图片”</div>';
+    return;
+  }
+  box.innerHTML = styleItems.map((it, i) => `
+    <div class="style-item">
+      <img src="${esc(it.url)}" alt="风采" onclick="window.open('${esc(it.url)}','_blank')" onerror="this.style.opacity=.2">
+      <button type="button" class="si-del" onclick="removeStyleItem(${i})" title="移除">×</button>
+      <input type="text" value="${esc(it.desc || '')}" placeholder="描述文字"
+             oninput="updateStyleDesc(${i}, this.value)">
+    </div>
+  `).join('');
+}
+window.removeStyleItem = (idx) => {
+  styleItems.splice(idx, 1);
+  renderStyleItems();
+};
+window.updateStyleDesc = (idx, val) => {
+  if (styleItems[idx]) styleItems[idx].desc = val;
+};
+
+window.addStylePhotos = async () => {
+  const input = document.getElementById('stylePhotoInput');
+  const files = Array.from(input.files || []);
+  if (files.length === 0) { alert('请先选择图片'); return; }
+
+  const btn = document.getElementById('styleUploadBtn');
+  const oldText = btn.textContent;
+  btn.disabled = true;
+
+  for (let i = 0; i < files.length; i++) {
+    btn.textContent = `上传中 (${i + 1}/${files.length})...`;
+    const urls = await uploadPhotos([files[i]], 'styles');
+    urls.forEach(url => styleItems.push({ url, desc: '' }));
+  }
+
+  btn.disabled = false;
+  btn.textContent = oldText;
+  input.value = '';
+  renderStyleItems();
+};
+
+/* ============ 首页轮播图预览 ============ */
 function renderBannerPreview(text) {
   const box = document.getElementById('bannerPreview');
   if (!box) return;
@@ -982,6 +1056,7 @@ document.getElementById('edit-banners').addEventListener('input', (e) => {
   renderBannerPreview(e.target.value);
 });
 
+/* ============ 保存内容 ============ */
 document.getElementById('contentForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('saveContentBtn');
@@ -990,7 +1065,7 @@ document.getElementById('contentForm').addEventListener('submit', async (e) => {
   const payloads = [
     { key: 'intro', content: document.getElementById('edit-intro').value },
     { key: 'honors', content: document.getElementById('edit-honors').value },
-    { key: 'styles', content: document.getElementById('edit-styles').value },
+    { key: 'styles', content: serializeStyleItems() },
     { key: 'skills', content: document.getElementById('edit-skills').value },
     { key: 'donations', content: document.getElementById('edit-donations').value },
     { key: 'banners', content: document.getElementById('edit-banners').value },
