@@ -16,6 +16,8 @@
   .header-title { font-size: 18px; font-weight: 400; }
   .header-actions a { color: #fff; text-decoration: none; margin-left: 15px; font-size: 14px; font-weight: 300;}
 
+  .warn-banner { display: none; background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; border-radius: 8px; padding: 12px 15px; margin: 12px 15px 0; font-size: 13px; line-height: 1.6; }
+
   .admin-nav { background: #fff; display: grid; grid-template-columns: repeat(5, 1fr); padding: 15px 10px; gap: 15px 5px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);}
   .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.1s; }
   .nav-item:active { transform: scale(0.95); }
@@ -44,6 +46,7 @@
   
   .btn { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 300;}
   .btn:hover { background: #0d47a1; }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
   .btn-sm { padding: 4px 8px; font-size: 12px; border-radius: 4px;}
   .btn-gray { background: #78909c; }
   .btn-red { background: #e53935; }
@@ -59,7 +62,6 @@
   .tag-green { background: #e8f5e9; color: #2e7d32; }
   .tag-gray { background: #eceff1; color: #78909c; }
   
-  /* 卡片列表 */
   .mobile-card-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
   .mobile-card { background: #fff; border: 1px solid #eceff1; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
   
@@ -71,6 +73,9 @@
   .mc-members { background: #f9fbfd; padding: 6px 8px; border-radius: 4px; font-size: 12px; color: #546e7a; margin-top: 4px;}
   
   .mc-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; border-top: 1px dashed #eee; padding-top: 10px;}
+
+  .task-thumbs { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap;}
+  .task-thumbs img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; background: #eee; cursor: pointer;}
 
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-thumb { background: #cfd8dc; border-radius: 3px; }
@@ -84,6 +89,14 @@
   .banner-preview .bp-item { border: 1px solid #eceff1; border-radius: 6px; overflow: hidden; background: #f9fbfd; position: relative; }
   .banner-preview .bp-item img { width: 100%; height: 80px; object-fit: cover; display: block; background: #eceff1; }
   .banner-preview .bp-item .bp-idx { position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,.55); color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 10px; font-weight: 300;}
+
+  /* 照片上传 */
+  .photo-upload-box { background: #f9fbfd; border: 1px dashed #cfd8dc; border-radius: 8px; padding: 12px; margin-bottom: 15px; }
+  .photo-upload-box input[type="file"] { font-size: 13px; }
+  .photo-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; margin-top: 10px; }
+  .photo-preview .pp-item { position: relative; border-radius: 6px; overflow: hidden; background: #eee; }
+  .photo-preview .pp-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block;}
+  .photo-preview .pp-del { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; border: none; font-size: 13px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
 <body>
@@ -95,6 +108,10 @@
     <a href="#" id="logoutBtn">退出</a>
   </div>
 </header>
+
+<div class="warn-banner" id="upgradeWarn">
+  ⚠️ 检测到数据库尚未升级：请先在 Supabase SQL Editor 执行升级脚本（members 增加 password 字段、tasks 增加 photos 字段、创建 task-photos 存储桶），否则密码登录和照片上传功能不可用。
+</div>
 
 <div class="admin-nav">
   <div class="nav-item" onclick="switchPanel('panel-members')">
@@ -135,10 +152,11 @@
         <div class="form-group"><label>姓名 *</label><input type="text" id="newMemberName" required></div>
         <div class="form-group"><label>联系电话</label><input type="text" id="newMemberPhone"></div>
         <div class="form-group"><label>紧急联系人</label><input type="text" id="newMemberEmergency"></div>
-        <div class="form-group" style="display:flex; align-items:flex-end;">
-          <button type="submit" class="btn" id="addMemberBtn" style="width:100%;">添加队员</button>
-          <button type="button" class="btn btn-gray" id="cancelMemberEdit" style="display:none; margin-left:5px; width:100%;">取消</button>
-        </div>
+        <div class="form-group"><label>登录密码（默认 0000）</label><input type="text" id="newMemberPassword" placeholder="留空则默认 0000"></div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="submit" class="btn" id="addMemberBtn">添加队员</button>
+        <button type="button" class="btn btn-gray" id="cancelMemberEdit" style="display:none;">取消</button>
       </div>
     </form>
 
@@ -206,6 +224,13 @@
 
       <div class="form-group"><label>发生时间</label><input type="datetime-local" id="task_time"></div>
       <div class="form-group"><label>事件详情</label><textarea id="content"></textarea></div>
+
+      <!-- 照片上传 -->
+      <div class="photo-upload-box">
+        <label style="display:block; font-size:13px; color:#607d8b; margin-bottom:6px; font-weight:300;">活动照片（可多选，支持 jpg/png/webp）</label>
+        <input type="file" id="taskPhotoInput" accept="image/*" multiple>
+        <div class="photo-preview" id="photoPreview"></div>
+      </div>
       
       <div style="background:#f9fbfd; border:1px solid #cfd8dc; border-radius:6px; margin-bottom:15px;">
         <div style="padding:10px 15px; background:#fff; border-bottom:1px solid #eceff1; font-size:14px; color:#1565c0; font-weight:400;">参与成员及个人时长</div>
@@ -314,7 +339,13 @@ let allRecruits = [];
 let allSignups = [];
 let allSettings = [];
 
+// 当前编辑任务已有的照片 URL 列表
+let taskPhotos = [];
+
+const STORAGE_BUCKET = 'task-photos';
+
 async function init() {
+  await checkSchema();
   await Promise.all([loadMembers(), loadTasks(), loadRecruits(), loadSettings()]);
   renderRecruits();
   renderTasks();
@@ -322,11 +353,25 @@ async function init() {
 }
 init();
 
+async function checkSchema() {
+  let needUpgrade = false;
+  try {
+    const r1 = await supabase.from('members').select('password').limit(1);
+    if (r1.error) needUpgrade = true;
+  } catch { needUpgrade = true; }
+  try {
+    const r2 = await supabase.from('tasks').select('photos').limit(1);
+    if (r2.error) needUpgrade = true;
+  } catch { needUpgrade = true; }
+  if (needUpgrade) document.getElementById('upgradeWarn').style.display = 'block';
+}
+
 window.switchPanel = (id) => {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 };
 
+/* ============ 成员 ============ */
 async function loadMembers() {
   const { data } = await supabase.from('members').select('*').order('name');
   allMembers = data || [];
@@ -384,8 +429,9 @@ window.editMember = (id) => {
   document.getElementById('newMemberName').value = m.name || '';
   document.getElementById('newMemberPhone').value = m.phone || '';
   document.getElementById('newMemberEmergency').value = m.emergency_contact || '';
+  document.getElementById('newMemberPassword').value = m.password || '';
   document.getElementById('addMemberBtn').textContent = '保存修改';
-  document.getElementById('cancelMemberEdit').style.display = 'block';
+  document.getElementById('cancelMemberEdit').style.display = 'inline-block';
 };
 document.getElementById('cancelMemberEdit').addEventListener('click', () => {
   document.getElementById('memberForm').reset();
@@ -399,13 +445,20 @@ document.getElementById('memberForm').addEventListener('submit', async (e) => {
   const name = document.getElementById('newMemberName').value.trim();
   const phone = document.getElementById('newMemberPhone').value.trim();
   const emergency = document.getElementById('newMemberEmergency').value.trim();
+  const password = document.getElementById('newMemberPassword').value.trim() || '0000';
   if(!name) return;
   
-  const payload = { name, phone, emergency_contact: emergency };
+  const payload = { name, phone, emergency_contact: emergency, password };
   if (!id) payload.status = '在队';
   
-  if (id) await supabase.from('members').update(payload).eq('id', id);
-  else await supabase.from('members').insert(payload);
+  const res = id
+    ? await supabase.from('members').update(payload).eq('id', id)
+    : await supabase.from('members').insert(payload);
+
+  if (res.error) {
+    alert('保存失败：' + res.error.message + '\n\n如提示 password 字段不存在，请先执行升级 SQL。');
+    return;
+  }
   
   document.getElementById('memberForm').reset();
   document.getElementById('memberEditId').value = '';
@@ -419,6 +472,7 @@ window.deleteMember = async (id) => {
   loadMembers();
 };
 
+/* ============ 招募 ============ */
 async function loadRecruits() {
   const [rRes, sRes] = await Promise.all([
     supabase.from('recruitments').select('*').order('created_at', { ascending: false }),
@@ -542,6 +596,9 @@ window.convertToTask = async (id) => {
   document.getElementById('content').value = r.content || '';
   if (r.event_type) document.querySelectorAll('input[name="event_type"]').forEach(radio => radio.checked = (radio.value === r.event_type));
   document.getElementById('memberSearchInput').value = '';
+  taskPhotos = [];
+  document.getElementById('taskPhotoInput').value = '';
+  renderPhotoPreview();
   document.querySelectorAll('input[name="task_members"]').forEach(cb => {
     const label = cb.parentElement;
     cb.checked = false; toggleHoursInput(cb);
@@ -557,9 +614,19 @@ window.convertToTask = async (id) => {
   alert(`已带入信息并自动隐藏未报名队员。如需添加未报名者，请在搜索框输入其姓名。`);
 };
 
+/* ============ 出勤记录 ============ */
 async function loadTasks() {
   const { data } = await supabase.from('tasks').select('*').order('task_time', { ascending: false });
   allTasks = data || [];
+}
+
+function getPhotos(t) {
+  if (!t || !t.photos) return [];
+  if (Array.isArray(t.photos)) return t.photos.filter(Boolean);
+  try {
+    const p = JSON.parse(t.photos);
+    return Array.isArray(p) ? p.filter(Boolean) : [];
+  } catch { return []; }
 }
 
 function renderTasks(filterText = '') {
@@ -588,6 +655,9 @@ function renderTasks(filterText = '') {
     }
     let membersStr = (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0) ? t.member_hours.map(m => `${m.name}(${m.hours}h)`).join('、') : (t.members || '-');
     let typeTag = t.event_type ? `<span class="tag tag-blue">${esc(t.event_type)}</span>` : '';
+    const photos = getPhotos(t);
+    const thumbs = photos.slice(0, 6).map(u =>
+      `<img src="${esc(u)}" alt="照片" onclick="window.open('${esc(u)}','_blank')">`).join('');
 
     return `
       <div class="mobile-card">
@@ -599,6 +669,7 @@ function renderTasks(filterText = '') {
           <div><span>时间：</span>${formatTime(t.task_time)}</div>
           <div><span>时长：</span>${displayDuration ? displayDuration + ' 小时' : '-'}</div>
           <div class="mc-members"><strong>成员：</strong>${esc(membersStr)}</div>
+          ${photos.length ? `<div class="task-thumbs">${thumbs}</div>` : ''}
         </div>
         <div class="mc-actions">
           <button class="btn btn-sm btn-gray" onclick="startEdit(${t.id})">编辑</button>
@@ -616,6 +687,66 @@ window.deleteTask = async (id) => {
   loadTasks().then(() => renderTasks(document.getElementById('taskSearchInput').value));
 };
 
+/* ============ 照片选择与上传 ============ */
+function renderPhotoPreview() {
+  const box = document.getElementById('photoPreview');
+  if (!box) return;
+  if (taskPhotos.length === 0) { box.innerHTML = ''; return; }
+  box.innerHTML = taskPhotos.map((url, i) => `
+    <div class="pp-item">
+      <img src="${esc(url)}" alt="照片">
+      <button type="button" class="pp-del" onclick="removeTaskPhoto(${i})" title="移除">×</button>
+    </div>
+  `).join('');
+}
+window.removeTaskPhoto = (idx) => {
+  taskPhotos.splice(idx, 1);
+  renderPhotoPreview();
+};
+
+// 压缩图片，避免手机原图过大上传失败
+async function compressImage(file, maxW = 1600, quality = 0.82) {
+  if (!file.type || !file.type.startsWith('image/')) return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    if (bitmap.width <= maxW) { if (bitmap.close) bitmap.close(); return file; }
+    const scale = maxW / bitmap.width;
+    const canvas = document.createElement('canvas');
+    canvas.width = maxW;
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    if (bitmap.close) bitmap.close();
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+    if (!blob) return file;
+    const newName = (file.name || 'photo').replace(/\.\w+$/, '') + '.jpg';
+    return new File([blob], newName, { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
+}
+
+async function uploadPhotos(files) {
+  const urls = [];
+  for (const raw of files) {
+    const file = await compressImage(raw);
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, file, {
+      cacheControl: '31536000',
+      upsert: false,
+      contentType: file.type || 'image/jpeg'
+    });
+    if (error) {
+      alert(`照片「${raw.name}」上传失败：${error.message}`);
+      continue;
+    }
+    const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+    if (data && data.publicUrl) urls.push(data.publicUrl);
+  }
+  return urls;
+}
+
+/* ============ 提交出勤 ============ */
 document.getElementById('taskForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('taskId').value;
@@ -631,6 +762,29 @@ document.getElementById('taskForm').addEventListener('submit', async (e) => {
     }
   });
   if (membersNames.length === 0) { alert('请至少勾选一名成员'); return; }
+
+  const submitBtn = document.getElementById('submitBtn');
+  const fileInput = document.getElementById('taskPhotoInput');
+  const newFiles = fileInput && fileInput.files ? Array.from(fileInput.files) : [];
+
+  const oldText = submitBtn.textContent;
+  if (newFiles.length > 0) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = `上传照片中 (0/${newFiles.length})...`;
+  }
+
+  let uploadedUrls = [];
+  if (newFiles.length > 0) {
+    // 逐张上传以便显示进度
+    for (let i = 0; i < newFiles.length; i++) {
+      submitBtn.textContent = `上传照片中 (${i + 1}/${newFiles.length})...`;
+      const urls = await uploadPhotos([newFiles[i]]);
+      uploadedUrls = uploadedUrls.concat(urls);
+    }
+  }
+
+  const finalPhotos = taskPhotos.concat(uploadedUrls);
+
   const payload = {
     title: document.getElementById('title').value.trim(),
     event_type: eventType,
@@ -639,11 +793,22 @@ document.getElementById('taskForm').addEventListener('submit', async (e) => {
     members: membersNames.join(', '),
     duration: maxDuration.toString(),
     member_hours: memberHoursArr,
+    photos: finalPhotos,
   };
   const res = id ? await supabase.from('tasks').update(payload).eq('id', id) : await supabase.from('tasks').insert(payload);
-  if (res.error) alert('保存失败：' + res.error.message);
-  else { 
-    document.getElementById('taskForm').reset(); document.getElementById('taskId').value = ''; resetMemberVisibility();
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = oldText;
+
+  if (res.error) {
+    alert('保存失败：' + res.error.message + '\n\n如提示 photos 字段不存在，请先执行升级 SQL。');
+  } else { 
+    document.getElementById('taskForm').reset();
+    document.getElementById('taskId').value = '';
+    taskPhotos = [];
+    document.getElementById('taskPhotoInput').value = '';
+    renderPhotoPreview();
+    resetMemberVisibility();
     loadTasks().then(() => renderTasks(document.getElementById('taskSearchInput').value)); 
     alert('保存成功'); switchPanel('panel-history');
   }
@@ -692,6 +857,12 @@ window.startEdit = (id) => {
   document.getElementById('task_time').value = toLocalInput(t.task_time);
   document.querySelectorAll('input[name="event_type"]').forEach(r => r.checked = (r.value === t.event_type));
   resetMemberVisibility();
+
+  // 加载已有照片
+  taskPhotos = getPhotos(t);
+  document.getElementById('taskPhotoInput').value = '';
+  renderPhotoPreview();
+
   const taskMembers = t.members ? t.members.split(',').map(s => s.trim()) : [];
   const memberHoursData = t.member_hours || [];
   document.querySelectorAll('input[name="task_members"]').forEach(cb => {
@@ -708,8 +879,15 @@ window.startEdit = (id) => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 document.getElementById('cancelEdit').addEventListener('click', (e) => {
-  e.preventDefault(); document.getElementById('taskForm').reset(); document.getElementById('taskId').value = '';
-  document.getElementById('submitBtn').textContent = '保存记录'; e.target.style.display = 'none'; resetMemberVisibility();
+  e.preventDefault();
+  document.getElementById('taskForm').reset();
+  document.getElementById('taskId').value = '';
+  document.getElementById('submitBtn').textContent = '保存记录';
+  e.target.style.display = 'none';
+  taskPhotos = [];
+  document.getElementById('taskPhotoInput').value = '';
+  renderPhotoPreview();
+  resetMemberVisibility();
 });
 
 window.exportSingleTaskToCSV = (id) => {
@@ -752,8 +930,8 @@ window.exportSingleTaskToCSV = (id) => {
   downloadCSVFile(csvContent, `记录表_${t.title}.csv`);
 };
 document.getElementById('exportAllBtn').addEventListener('click', () => {
-  const headers = ['类型', '名称', '时间', '总时长', '参与成员(个人时长)', '详情'];
-  const rows = allTasks.map(t => [t.event_type||'', t.title||'', formatTime(t.task_time), t.duration||'', (t.member_hours || []).map(m => `${m.name}(${m.hours}h)`).join('、') || t.members, (t.content || '').replace(/\n/g, ' ')]);
+  const headers = ['类型', '名称', '时间', '总时长', '参与成员(个人时长)', '详情', '照片数'];
+  const rows = allTasks.map(t => [t.event_type||'', t.title||'', formatTime(t.task_time), t.duration||'', (t.member_hours || []).map(m => `${m.name}(${m.hours}h)`).join('、') || t.members, (t.content || '').replace(/\n/g, ' '), getPhotos(t).length]);
   const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
   downloadCSVFile(csvContent, `全部记录_${new Date().toISOString().split('T')[0]}.csv`);
 });
@@ -765,6 +943,7 @@ function downloadCSVFile(csvContent, filename) {
   link.download = filename; link.click();
 }
 
+/* ============ 内容设置 ============ */
 async function loadSettings() {
   const { data } = await supabase.from('site_settings').select('*');
   allSettings = data || [];
