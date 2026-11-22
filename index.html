@@ -14,11 +14,9 @@
   
   h1, h2, h3, h4, th, strong, b, .modal-title { font-weight: 400 !important; }
 
-  /* 1. 顶部：只承载轮播图 */
   .app-header { background: #0d47a1; padding: 0; display: block; position: relative; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
   .settings-btn { position: absolute; top: 10px; right: 10px; color: #fff; font-size: 18px; text-decoration: none; z-index: 10; background: rgba(0,0,0,.35); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; }
 
-  /* 1.1 首页轮播图（600×300 比例） */
   .banner-carousel { position: relative; width: 100%; max-width: 600px; aspect-ratio: 2 / 1; overflow: hidden; margin: 0 auto; background: #0d47a1; touch-action: pan-y; }
   .banner-track { display: flex; height: 100%; width: 100%; transition: transform .5s ease; will-change: transform; }
   .banner-slide { flex: 0 0 100%; height: 100%; display: block; text-decoration: none; }
@@ -28,7 +26,6 @@
   .banner-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.5); cursor: pointer; transition: all .2s; }
   .banner-dot.active { background: #fff; width: 16px; border-radius: 4px; }
 
-  /* 3. 金刚区 (两排10宫格) */
   .grid-nav { background: #fff; display: grid; grid-template-columns: repeat(5, 1fr); padding: 15px 10px; gap: 15px 5px; margin-bottom: 10px; margin-top: 10px; }
   .grid-item { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
   .grid-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
@@ -46,7 +43,6 @@
   .bg-cyan { background: linear-gradient(135deg, #4dd0e1, #0097a7); }
   .bg-brown { background: linear-gradient(135deg, #a1887f, #5d4037); }
 
-  /* 出勤榜单展开区域 */
   #chart-section { display: none; background: #fff; margin: 0 10px 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
   .charts-container { display: flex; flex-wrap: wrap; gap: 15px; padding: 15px; background: #f9fbfd; border-bottom: 1px solid #eee; }
   .chart-box { flex: 1; min-width: 280px; height: 240px; }
@@ -69,13 +65,11 @@
   .detail-badge.training { border-color: #a5d6a7; color: #2e7d32; background: #e8f5e9; }
   .detail-badge.fire { border-color: #ef9a9a; color: #c62828; background: #ffebee; }
 
-  /* 4. 列表 Tab */
   .tabs { background: #fff; display: flex; padding: 10px 15px; gap: 18px; border-bottom: 1px solid #eee; align-items: center; overflow-x: auto; white-space: nowrap;}
   .tab-item { font-size: 15px; font-weight: 300; color: #666; cursor: pointer; position: relative; padding-bottom: 5px; flex-shrink: 0;}
   .tab-item.active { color: #333; font-weight: 400; }
   .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; background: var(--primary); border-radius: 2px; }
 
-  /* 5. 招募接龙区 */
   .section-title { padding: 15px 15px 5px; font-size: 16px; color: #333; display: flex; align-items: center; gap: 8px;}
   .recruit-container { padding: 0 10px; }
   .recruit-card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -98,7 +92,6 @@
   .btn-outline { background: #fff; color: #e53935; border: 1px solid #e53935; }
   .expired-box { background: #f5f5f5; color: #999; text-align: center; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 300;}
 
-  /* 6. 历史活动列表 */
   .task-list { padding: 0 10px; }
   .task-card { background: #fff; border-radius: 8px; padding: 15px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; gap: 10px; cursor: pointer; transition: box-shadow .2s; }
   .task-card:active { box-shadow: 0 0 0 2px #e3f2fd; }
@@ -111,7 +104,6 @@
   .task-thumbs img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; background: #eee;}
   .task-more { font-size: 12px; color: #1565c0; align-self: center;}
 
-  /* 7. 底部 TabBar & 备案号 */
   .bottom-tab { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 600px; background: #fff; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #eee; z-index: 100; }
   .tab-btn { display: flex; flex-direction: column; align-items: center; color: #999; font-size: 11px; font-weight: 300; cursor: pointer; }
   .tab-btn.active { color: var(--primary); }
@@ -119,7 +111,6 @@
   .icp-footer { text-align: center; color: #90a4ae; font-size: 12px; padding: 20px 0 70px; }
   .icp-footer a { color: #90a4ae; text-decoration: none; }
 
-  /* 8. 弹窗样式 */
   .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center; }
   .modal-content { background: #fff; width: 85%; max-width: 400px; border-radius: 12px; padding: 20px; position: relative; max-height: 80vh; overflow-y: auto;}
   .close-btn { position: absolute; top: 15px; right: 15px; font-size: 20px; color: #999; cursor: pointer; z-index: 10; font-weight: 300;}
@@ -127,6 +118,7 @@
   .input-group { margin-bottom: 15px; }
   .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-weight: 300;}
   .btn-block { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: 300;}
+  .btn-block:disabled { opacity: .6; cursor: not-allowed; }
   
   #shareModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
   .share-modal-content { background: #fff; width: 90%; max-width: 350px; border-radius: 12px; overflow: hidden; text-align: center; }
@@ -156,7 +148,6 @@
   .donate-item .name { color: #333; font-weight: 400; }
   .donate-item .amount { color: #e53935; font-weight: 400; }
 
-  /* 任务详情弹窗 */
   .task-detail-meta { font-size: 13px; color: #607d8b; margin-bottom: 6px; }
   .task-detail-meta span { color: #90a4ae; margin-right: 4px; }
   .task-detail-content { font-size: 14px; color: #444; background: #f9fbfd; padding: 10px; border-radius: 6px; margin: 10px 0; white-space: pre-wrap; line-height: 1.7;}
@@ -166,7 +157,6 @@
   .member-hours-tag { font-size: 12px; background: #e3f2fd; color: #1565c0; padding: 3px 8px; border-radius: 12px; font-weight: 300;}
   .member-hours-tag.me { background: #fff3e0; color: #e65100; font-weight: 400;}
 
-  /* 个人中心 */
   .me-hint { font-size: 13px; color: #78909c; line-height: 1.7; margin: 0 0 14px; font-weight: 300;}
   .me-summary { background: linear-gradient(135deg, #1565c0, #42a5f5); color: #fff; border-radius: 10px; padding: 16px; text-align: center; margin-bottom: 14px;}
   .me-summary .me-name { font-size: 17px; font-weight: 400; }
@@ -180,13 +170,12 @@
   .me-event .me-event-meta { font-size: 12px; color: #999; margin-top: 3px;}
   .me-empty { font-size: 13px; color: #b0bec5; text-align: center; padding: 16px 0; font-weight: 300;}
   .me-logout { margin-top: 16px; background: #eceff1; color: #546e7a; }
+  .me-change-pwd { margin-top: 14px; background: #1565c0; color: #fff; }
 
-  /* 照片查看器 */
   #photoViewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 2000; align-items: center; justify-content: center; }
   #photoViewer img { max-width: 96%; max-height: 92%; object-fit: contain; }
   #photoViewer .pv-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 30px; font-weight: 300; cursor: pointer; }
 
-  /* 海报分享弹窗 */
   #posterModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.72); z-index: 1500; align-items: center; justify-content: center; padding: 12px; }
   #posterModal .poster-box { background: #fff; border-radius: 12px; width: 100%; max-width: 380px; max-height: 94vh; overflow-y: auto; padding: 15px; position: relative; }
   #posterModal .poster-close { position: absolute; top: 10px; right: 14px; font-size: 24px; color: #666; cursor: pointer; font-weight: 300; z-index: 2;}
@@ -208,8 +197,6 @@
 
 <header class="app-header">
   <a href="login.html" class="settings-btn" title="管理员登录">⚙</a>
-
-  <!-- 首页轮播图（600×300 比例） -->
   <div class="banner-carousel" id="bannerCarousel">
     <div class="banner-track" id="bannerTrack"></div>
     <div class="banner-dots" id="bannerDots"></div>
@@ -246,7 +233,7 @@
     <div class="grid-icon bg-indigo"><svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg></div>
     <div class="grid-text">出勤榜单</div>
   </div>
-  <div class="grid-item" onclick="openModal('modal-contact')">
+  <div class="grid-item" onclick="openContact()">
     <div class="grid-icon bg-cyan"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg></div>
     <div class="grid-text">通讯录</div>
   </div>
@@ -289,7 +276,6 @@
 </div>
 <div id="task-list" class="task-list" style="padding-top: 10px;"></div>
 
-<!-- 底部版权与备案号 -->
 <footer class="icp-footer">
   <div style="margin-bottom: 5px;">云和·蓝天救援队</div>
   <a href="https://beian.miit.gov.cn/" target="_blank">浙ICP备2026012945号-2</a>
@@ -323,14 +309,23 @@
 
 <div id="modal-me" class="modal">
   <div class="modal-content">
-    <div class="close-btn" onclick="closeModal('modal-me')">×</div>
-    <div class="modal-title">我的</div>
+    <div class="close-btn" onclick="handleMeClose()">×</div>
+    <div class="modal-title" id="meTitle">我的</div>
 
     <div id="meLoginView">
-      <p class="me-hint">队员登录后可查看自己的出勤时长和参与事件。<br>默认密码为 <strong>0000</strong>，如已修改请使用新密码。</p>
+      <p class="me-hint">队员登录后可查看自己的出勤时长、参与事件和队员通讯录。<br>首次登录初始密码为 <strong>0000</strong>。</p>
       <div class="input-group"><input id="meName" placeholder="真实姓名"></div>
       <div class="input-group"><input id="mePwd" type="password" placeholder="密码"></div>
       <button class="btn-block" onclick="memberLogin()" id="meLoginBtn">登 录</button>
+    </div>
+
+    <div id="meChangePwdView" style="display:none;">
+      <p class="me-hint">首次登录，请设置个人新密码（不少于 4 位）。<br>设置后请牢记，下次登录将使用新密码。</p>
+      <div class="input-group"><input id="cpNewPwd" type="password" placeholder="新密码"></div>
+      <div class="input-group"><input id="cpConfirmPwd" type="password" placeholder="再次输入新密码"></div>
+      <div id="cpError" style="color:#e53935; font-size:13px; margin-bottom:10px; display:none;"></div>
+      <button class="btn-block" onclick="submitChangePwd()" id="cpSubmitBtn">保存新密码</button>
+      <button class="btn-block" style="background:#eceff1; color:#546e7a; margin-top:10px;" onclick="cancelChangePwd()">暂不修改，退出登录</button>
     </div>
 
     <div id="meProfileView" style="display:none"></div>
@@ -345,7 +340,6 @@
   </div>
 </div>
 
-<!-- 海报分享弹窗 -->
 <div id="posterModal">
   <div class="poster-box">
     <span class="poster-close" onclick="closePoster()">×</span>
@@ -366,12 +360,7 @@
   <div class="modal-content">
     <div class="close-btn" onclick="closeModal('modal-contact')">×</div>
     <div class="modal-title">队员通讯录</div>
-    <div id="contact-lock-view">
-      <p style="font-size:13px; color:#666; margin-bottom:10px; font-weight: 300;">为保护隐私，请输入口令：</p>
-      <div class="input-group"><input type="password" id="contactPassword" placeholder="输入队内口令"></div>
-      <button class="btn-block" onclick="unlockContacts()">解锁</button>
-    </div>
-    <div id="contact-data-view" style="display:none; font-weight: 300;"></div>
+    <div id="contact-data-view"></div>
   </div>
 </div>
 
@@ -451,7 +440,6 @@
 <script type="module">
 import { supabase } from './supabaseClient.js';
 
-/* ===== 轮播相关变量必须在顶层调用前声明，避免 TDZ 报错 ===== */
 const DEFAULT_BANNER = 'https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png';
 let bannerCount = 0;
 let bannerIndex = 0;
@@ -463,16 +451,17 @@ let globalAllTasks = [];
 let globalAllMembers = [];
 let recruitsResData = null;
 let signupsResData = null;
-let currentMember = null; // { id, name }
+let currentMember = null;       // { id, name }
+let pendingFirstLogin = false;  // 首次登录待改密
 let currentTypeFilter = 'all';
 let currentPosterTaskId = null;
-const CONTACT_PASSWORD = "9958";
 
 const { data: { session } } = await supabase.auth.getSession();
 
 const [tasksRes, membersRes, recruitsRes, signupsRes, settingsRes] = await Promise.all([
   supabase.from('tasks').select('*').order('task_time', { ascending: false }),
-  supabase.from('members').select('*').eq('status', '在队').order('name'),
+  // 注意：不再 select *，避免把队员密码拉下来
+  supabase.from('members').select('id,name,phone,status,emergency_contact,pwd_changed').eq('status', '在队').order('name'),
   supabase.from('recruitments').select('*').eq('status', '招募中').order('created_at', { ascending: false }),
   supabase.from('recruitment_signups').select('*'),
   supabase.from('site_settings').select('*')
@@ -484,10 +473,14 @@ recruitsResData = recruitsRes.data || [];
 signupsResData = signupsRes.data || [];
 const allSettings = settingsRes.data || [];
 
-// 恢复登录态
+if (membersRes.error) {
+  console.warn('members 查询出错：', membersRes.error.message);
+}
+
 const savedMemberName = sessionStorage.getItem('member_name');
 if (savedMemberName && globalAllMembers.some(m => m.name === savedMemberName)) {
-  currentMember = { name: savedMemberName };
+  const m = globalAllMembers.find(x => x.name === savedMemberName);
+  currentMember = { id: m.id, name: m.name };
 }
 
 renderSettingsContent(allSettings);
@@ -496,12 +489,10 @@ renderTasks();
 processTasksData(globalAllTasks);
 bindHistoryTabs();
 
-// 支持通过 ?task=ID 直接打开活动详情（用于微信扫码直达）
 (function openTaskFromUrl() {
   try {
     const id = new URLSearchParams(window.location.search).get('task');
     if (id) {
-      // 等 DOM 渲染完成再打开
       setTimeout(() => {
         const t = globalAllTasks.find(x => String(x.id) === String(id));
         if (t) openTaskDetail(id);
@@ -510,7 +501,6 @@ bindHistoryTabs();
   } catch (e) {}
 })();
 
-/* ============ 工具 ============ */
 function getPhotos(t) {
   if (!t || !t.photos) return [];
   if (Array.isArray(t.photos)) return t.photos.filter(Boolean);
@@ -520,7 +510,7 @@ function getPhotos(t) {
   } catch { return []; }
 }
 
-/* ============ 首页轮播图逻辑 ============ */
+/* ============ 轮播 ============ */
 function renderBanners(list) {
   const carousel = document.getElementById('bannerCarousel');
   const track = document.getElementById('bannerTrack');
@@ -528,9 +518,7 @@ function renderBanners(list) {
   if (!carousel || !track || !dots) return;
 
   const isFallback = !list || list.length === 0;
-  if (isFallback) {
-    list = [{ url: DEFAULT_BANNER, link: '' }];
-  }
+  if (isFallback) list = [{ url: DEFAULT_BANNER, link: '' }];
 
   bannerCount = list.length;
   bannerIndex = 0;
@@ -570,25 +558,11 @@ function updateBannerPosition() {
   const dots = document.getElementById('bannerDots');
   if (!track) return;
   track.style.transform = `translateX(-${bannerIndex * 100}%)`;
-  if (dots) {
-    dots.querySelectorAll('.banner-dot').forEach((d, i) =>
-      d.classList.toggle('active', i === bannerIndex));
-  }
+  if (dots) dots.querySelectorAll('.banner-dot').forEach((d, i) => d.classList.toggle('active', i === bannerIndex));
 }
-
-function nextBanner() {
-  if (bannerCount <= 1) return;
-  bannerIndex = (bannerIndex + 1) % bannerCount;
-  updateBannerPosition();
-}
-
-function startBannerTimer() {
-  clearBannerTimer();
-  if (bannerCount > 1) bannerTimer = setInterval(nextBanner, 4000);
-}
-function clearBannerTimer() {
-  if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; }
-}
+function nextBanner() { if (bannerCount <= 1) return; bannerIndex = (bannerIndex + 1) % bannerCount; updateBannerPosition(); }
+function startBannerTimer() { clearBannerTimer(); if (bannerCount > 1) bannerTimer = setInterval(nextBanner, 4000); }
+function clearBannerTimer() { if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; } }
 
 function bindBannerTouch() {
   const carousel = document.getElementById('bannerCarousel');
@@ -596,40 +570,32 @@ function bindBannerTouch() {
   carousel.dataset.bound = '1';
 
   let startX = 0, startY = 0, dragging = false, moved = false;
-
   carousel.addEventListener('touchstart', (e) => {
     if (bannerCount <= 1) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    dragging = true; moved = false;
-    clearBannerTimer();
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+    dragging = true; moved = false; clearBannerTimer();
   }, { passive: true });
-
   carousel.addEventListener('touchmove', (e) => {
     if (!dragging) return;
     const dx = e.touches[0].clientX - startX;
     const dy = e.touches[0].clientY - startY;
     if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) moved = true;
   }, { passive: true });
-
   carousel.addEventListener('touchend', (e) => {
     if (!dragging) return;
     dragging = false;
     const dx = (e.changedTouches[0] ? e.changedTouches[0].clientX : startX) - startX;
     if (moved && Math.abs(dx) > 40) {
-      if (dx < 0) bannerIndex = (bannerIndex + 1) % bannerCount;
-      else bannerIndex = (bannerIndex - 1 + bannerCount) % bannerCount;
+      bannerIndex = dx < 0 ? (bannerIndex + 1) % bannerCount : (bannerIndex - 1 + bannerCount) % bannerCount;
       updateBannerPosition();
       suppressBannerClick = true;
       setTimeout(() => { suppressBannerClick = false; }, 300);
     }
     startBannerTimer();
   });
-
   carousel.addEventListener('click', (e) => {
     if (suppressBannerClick) { e.preventDefault(); e.stopPropagation(); }
   }, true);
-
   carousel.addEventListener('mouseenter', clearBannerTimer);
   carousel.addEventListener('mouseleave', startBannerTimer);
 }
@@ -653,9 +619,8 @@ function renderSettingsContent(settings) {
           <p>${esc(parts[0]) || '荣誉'}</p>
           <span>${esc(parts[1]) || ''}</span>
         </div>
-      </div>
-    `;
-  }).join('') || '<div class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
+      </div>`;
+  }).join('') || '<div style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
 
   const styles = getContent('styles', '').split('\n').filter(Boolean);
   document.getElementById('content-styles').innerHTML = styles.map(line => {
@@ -664,31 +629,20 @@ function renderSettingsContent(settings) {
       <div class="style-card">
         <img src="${esc(parts[0]) || 'https://via.placeholder.com/150'}" alt="${esc(parts[1])}">
         <p>${esc(parts[1]) || '风采展示'}</p>
-      </div>
-    `;
-  }).join('') || '<div class="empty" style="grid-column: span 2; text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
+      </div>`;
+  }).join('') || '<div style="grid-column: span 2; text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
 
   const skills = getContent('skills', '').split('\n').filter(Boolean);
   document.getElementById('content-skills').innerHTML = skills.map(line => {
     const parts = line.split('|');
-    return `
-      <li class="skill-item">
-        <span>${esc(parts[0]) || '姓名'}</span>
-        <span>${esc(parts[1]) || '技能'}</span>
-      </li>
-    `;
-  }).join('') || '<li class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</li>';
+    return `<li class="skill-item"><span>${esc(parts[0]) || '姓名'}</span><span>${esc(parts[1]) || '技能'}</span></li>`;
+  }).join('') || '<li style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</li>';
 
   const donations = getContent('donations', '').split('\n').filter(Boolean);
   document.getElementById('content-donations').innerHTML = donations.map(line => {
     const parts = line.split('|');
-    return `
-      <div class="donate-item">
-        <span class="name">${esc(parts[0]) || '爱心人士'}</span>
-        <span class="amount">${esc(parts[1]) || '捐赠'}</span>
-      </div>
-    `;
-  }).join('') || '<div class="empty" style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
+    return `<div class="donate-item"><span class="name">${esc(parts[0]) || '爱心人士'}</span><span class="amount">${esc(parts[1]) || '捐赠'}</span></div>`;
+  }).join('') || '<div style="text-align:center; padding:20px; color:#999; font-weight:300;">暂无记录</div>';
 
   const bannerLines = getContent('banners', '').split('\n').map(l => l.trim()).filter(Boolean);
   const banners = bannerLines.map(line => {
@@ -705,28 +659,19 @@ function renderRecruits() {
     document.getElementById('recruit-section').style.display = 'none';
     return;
   }
-
   container.innerHTML = recruitsResData.map(r => {
     const signups = (signupsResData || []).filter(s => s.recruitment_id === r.id);
     const signupNames = signups.map(s => `<span class="signup-tag">${esc(s.member_name)}</span>`).join('');
     const isExpired = r.task_time ? new Date(r.task_time).getTime() < Date.now() : false;
-    
     let uniformStr = r.uniform_type ? r.uniform_type.split(',').join('、') : '';
-    
-    let actionHtml = '';
-    if (isExpired) {
-      actionHtml = `<div class="expired-box">该任务已过集合时间</div>`;
-    } else {
-      actionHtml = `
-        <div class="recruit-actions">
+    let actionHtml = isExpired
+      ? `<div class="expired-box">该任务已过集合时间</div>`
+      : `<div class="recruit-actions">
           <input type="text" id="signupName_${r.id}" placeholder="输入真实姓名报名">
           <button class="btn-primary" onclick="handleSignup(${r.id})">接龙</button>
           <button class="btn-share" onclick="handleShare(${r.id})">分享</button>
           <button class="btn-outline" onclick="handleQuit(${r.id})">退出</button>
-        </div>
-      `;
-    }
-
+        </div>`;
     return `
       <div class="recruit-card">
         <div class="recruit-header">
@@ -741,14 +686,12 @@ function renderRecruits() {
         <div class="recruit-detail"><span>地点：</span>${esc(r.location) || '待定'}</div>
         <div class="recruit-detail"><span>时间：</span>${formatTime(r.task_time)}</div>
         ${r.content ? `<div class="recruit-detail" style="margin-top:5px; color:#999;">${esc(r.content)}</div>` : ''}
-        
         <div class="recruit-members">
           <div style="margin-bottom:5px; font-weight:400;">已报名 (${signups.length}人)：</div>
           <div>${signupNames || '<span style="color:#b0bec5;">暂无</span>'}</div>
         </div>
         ${actionHtml}
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
@@ -770,24 +713,19 @@ function renderTasks() {
     container.innerHTML = '<div style="text-align:center; color:#999; padding:20px; font-weight:300;">暂无历史记录</div>';
     return;
   }
-
   let list = globalAllTasks;
-  if (currentTypeFilter !== 'all') {
-    list = list.filter(t => (t.event_type || '') === currentTypeFilter);
-  }
-
+  if (currentTypeFilter !== 'all') list = list.filter(t => (t.event_type || '') === currentTypeFilter);
   if (list.length === 0) {
     container.innerHTML = '<div style="text-align:center; color:#999; padding:20px; font-weight:300;">该分类下暂无记录</div>';
     return;
   }
-
   container.innerHTML = list.map(t => {
-    let membersStr = (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0) 
-      ? t.member_hours.map(m => `${esc(m.name)}(${m.hours}h)`).join('、') : (t.members || '-');
+    let membersStr = (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0)
+      ? t.member_hours.map(m => `${esc(m.name)}(${m.hours}h)`).join('、')
+      : (t.members || '-');
     const photos = getPhotos(t);
     const thumbs = photos.slice(0, 4).map(u =>
       `<img src="${esc(u)}" alt="照片" onclick="event.stopPropagation();viewPhoto('${esc(u)}')">`).join('');
-
     return `
       <div class="task-card" onclick="openTaskDetail('${t.id}')">
         <div class="task-card-avatar">记</div>
@@ -797,8 +735,7 @@ function renderTasks() {
           <div class="task-members"><strong>参与队员：</strong>${membersStr}</div>
           ${photos.length ? `<div class="task-thumbs">${thumbs}${photos.length > 4 ? `<span class="task-more">+${photos.length - 4}</span>` : ''}</div>` : ''}
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
@@ -830,20 +767,18 @@ window.openTaskDetail = (id) => {
 };
 
 window.viewPhoto = (url) => {
-  const viewer = document.getElementById('photoViewer');
   document.getElementById('photoViewerImg').src = url;
-  viewer.style.display = 'flex';
+  document.getElementById('photoViewer').style.display = 'flex';
 };
 window.closePhotoViewer = () => {
   document.getElementById('photoViewer').style.display = 'none';
 };
 
-/* ============ 海报生成 & 分享 ============ */
+/* ============ 海报 ============ */
 function getTaskShareUrl(id) {
   const base = window.location.href.split('?')[0].split('#')[0];
   return `${base}?task=${encodeURIComponent(id)}`;
 }
-
 function loadImage(url, useCors = true) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -855,7 +790,6 @@ function loadImage(url, useCors = true) {
     setTimeout(() => { if (!settled) { settled = true; reject(new Error('图片加载超时')); } }, 15000);
   });
 }
-
 function drawImageCover(ctx, img, x, y, w, h) {
   const iw = img.width, ih = img.height;
   if (!iw || !ih) return;
@@ -864,7 +798,6 @@ function drawImageCover(ctx, img, x, y, w, h) {
   const sx = (iw - sw) / 2, sy = (ih - sh) / 2;
   ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
 }
-
 function wrapText(ctx, text, maxWidth, maxLines = 2) {
   const chars = String(text || '').split('');
   const lines = [];
@@ -874,22 +807,16 @@ function wrapText(ctx, text, maxWidth, maxLines = 2) {
     if (ctx.measureText(test).width > maxWidth) {
       if (lines.length === maxLines - 1) {
         let truncated = cur;
-        while (truncated && ctx.measureText(truncated + '…').width > maxWidth) {
-          truncated = truncated.slice(0, -1);
-        }
+        while (truncated && ctx.measureText(truncated + '…').width > maxWidth) truncated = truncated.slice(0, -1);
         lines.push(truncated + '…');
         return lines;
       }
-      lines.push(cur);
-      cur = ch;
-    } else {
-      cur = test;
-    }
+      lines.push(cur); cur = ch;
+    } else cur = test;
   }
   if (cur) lines.push(cur);
   return lines;
 }
-
 function drawRoundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -906,23 +833,18 @@ async function buildTaskPoster(t) {
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // 背景
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
 
-  // 顶部图片区
   const photoH = 560;
   const photos = getPhotos(t);
   let imgOk = false;
-
   if (photos.length > 0) {
     try {
       const img = await loadImage(photos[0]);
       drawImageCover(ctx, img, 0, 0, W, photoH);
       imgOk = true;
-    } catch (e) { imgOk = false; }
+    } catch {}
   }
-
   if (!imgOk) {
     const grad = ctx.createLinearGradient(0, 0, W, photoH);
     grad.addColorStop(0, '#0d47a1');
@@ -930,41 +852,32 @@ async function buildTaskPoster(t) {
     grad.addColorStop(1, '#42a5f5');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, photoH);
-    // 品牌字
     ctx.fillStyle = 'rgba(255,255,255,.18)';
     ctx.font = 'bold 90px "PingFang SC", "Microsoft YaHei", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('蓝天救援', W / 2, photoH / 2 + 20);
   }
 
-  // 类型标签
   if (t.event_type) {
-    const label = t.event_type;
     ctx.font = '500 28px "PingFang SC", "Microsoft YaHei", sans-serif';
-    const tw = ctx.measureText(label).width + 48;
+    const tw = ctx.measureText(t.event_type).width + 48;
     ctx.fillStyle = 'rgba(0,0,0,.6)';
     drawRoundRect(ctx, 30, 30, tw, 56, 28);
     ctx.fill();
     ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(label, 30 + tw / 2, 58);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(t.event_type, 30 + tw / 2, 58);
   }
 
-  // 标题
   let y = photoH + 50;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillStyle = '#1f2d3d';
   ctx.font = 'bold 42px "PingFang SC", "Microsoft YaHei", sans-serif';
-  const titleLines = wrapText(ctx, t.title || '活动', W - 80, 2);
-  titleLines.forEach(line => {
+  wrapText(ctx, t.title || '活动', W - 80, 2).forEach(line => {
     ctx.fillText(line, 40, y);
     y += 56;
   });
 
-  // 元信息
   y += 10;
   ctx.font = '28px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillStyle = '#607d8b';
@@ -975,24 +888,16 @@ async function buildTaskPoster(t) {
     ? t.member_hours.map(m => m.name).join('、')
     : (t.members || '');
   if (members) {
-    ctx.fillStyle = '#607d8b';
-    ctx.fillText('队员：', 40, y);
+    ctx.fillStyle = '#607d8b'; ctx.fillText('队员：', 40, y);
     ctx.fillStyle = '#1565c0';
     const shown = members.length > 24 ? members.slice(0, 24) + '…' : members;
-    ctx.fillText(shown, 134, y);
-    y += 46;
+    ctx.fillText(shown, 134, y); y += 46;
   }
 
-  // 底部品牌区
   const brandY = H - 240;
-  ctx.strokeStyle = '#eceff1';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(40, brandY);
-  ctx.lineTo(W - 40, brandY);
-  ctx.stroke();
+  ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(40, brandY); ctx.lineTo(W - 40, brandY); ctx.stroke();
 
-  // 二维码
   const qrSize = 160;
   const qrX = W - 40 - qrSize;
   const qrY = H - 40 - qrSize;
@@ -1001,28 +906,23 @@ async function buildTaskPoster(t) {
   if (typeof QRCode !== 'undefined') {
     try {
       const qrDataUrl = await QRCode.toDataURL(taskUrl, {
-        width: 320, margin: 1,
-        errorCorrectionLevel: 'M',
+        width: 320, margin: 1, errorCorrectionLevel: 'M',
         color: { dark: '#0d47a1', light: '#ffffff' }
       });
       const qrImg = await loadImage(qrDataUrl, false);
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
       qrOk = true;
-    } catch (e) { qrOk = false; }
+    } catch {}
   }
   if (!qrOk) {
-    ctx.fillStyle = '#eceff1';
-    ctx.fillRect(qrX, qrY, qrSize, qrSize);
+    ctx.fillStyle = '#eceff1'; ctx.fillRect(qrX, qrY, qrSize, qrSize);
     ctx.fillStyle = '#90a4ae';
     ctx.font = '20px "PingFang SC", "Microsoft YaHei", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('二维码', qrX + qrSize / 2, qrY + qrSize / 2);
   }
 
-  // 左侧品牌文字
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillStyle = '#0d47a1';
   ctx.font = 'bold 34px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillText('云和·蓝天救援队', 40, qrY);
@@ -1040,38 +940,28 @@ window.shareTaskToWeChat = async (taskId) => {
   const t = globalAllTasks.find(x => String(x.id) === String(taskId));
   if (!t) return;
   currentPosterTaskId = t.id;
-
   document.getElementById('posterModal').style.display = 'flex';
   document.getElementById('posterLoading').style.display = 'block';
   document.getElementById('posterLoading').textContent = '海报生成中...';
   document.getElementById('posterResult').style.display = 'none';
-
   try {
     const dataUrl = await buildTaskPoster(t);
     document.getElementById('posterImg').src = dataUrl;
     document.getElementById('posterLoading').style.display = 'none';
     document.getElementById('posterResult').style.display = 'block';
   } catch (e) {
-    console.error(e);
     document.getElementById('posterLoading').textContent = '海报生成失败：' + (e.message || '未知错误');
   }
 };
-
-window.closePoster = () => {
-  document.getElementById('posterModal').style.display = 'none';
-};
-
+window.closePoster = () => document.getElementById('posterModal').style.display = 'none';
 window.downloadPoster = () => {
   const img = document.getElementById('posterImg');
   if (!img || !img.src) return;
   const a = document.createElement('a');
   a.href = img.src;
   a.download = `活动海报_${Date.now()}.jpg`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
 };
-
 window.copyTaskShareLink = () => {
   if (!currentPosterTaskId) return;
   const t = globalAllTasks.find(x => String(x.id) === String(currentPosterTaskId));
@@ -1079,12 +969,12 @@ window.copyTaskShareLink = () => {
   const url = getTaskShareUrl(t.id);
   const text = `【云和·蓝天救援队】${t.title}\n时间：${formatTime(t.task_time)}\n详情请点击：${url}`;
   copyToClipboard(text);
-  alert('活动链接与文案已复制！\n\n可直接粘贴到微信。');
+  alert('活动链接与文案已复制！');
 };
 
 /* ============ 分享（招募） ============ */
 function generateShareText(r, signups) {
-  let siteUrl = window.location.href.split('?')[0];
+  const siteUrl = window.location.href.split('?')[0];
   let text = `【云和·蓝天救援队 任务招募】\n\n`;
   text += `[类型] ${r.event_type || '待定'}\n`;
   text += `[着装] ${r.uniform_type || '无特殊要求'}\n`;
@@ -1092,14 +982,8 @@ function generateShareText(r, signups) {
   text += `[时间] ${formatTime(r.task_time)}\n`;
   text += `[地点] ${r.location || '待定'}\n`;
   if (r.content) text += `[详情] ${r.content}\n`;
-  
   text += `\n[报名] 已有 ${signups.length} 人报名：\n`;
-  if (signups.length > 0) {
-    text += signups.map(s => s.member_name).join('、') + '\n';
-  } else {
-    text += `（暂无，快来抢沙发！）\n`;
-  }
-
+  text += signups.length > 0 ? signups.map(s => s.member_name).join('、') + '\n' : `（暂无，快来抢沙发！）\n`;
   text += `\n请点击下方链接，打开网页输入真实姓名进行接龙报名：\n${siteUrl}\n\n`;
   text += `（请大家积极报名，注意安全！）`;
   return text;
@@ -1109,96 +993,79 @@ window.handleSignup = async (id) => {
   const input = document.getElementById(`signupName_${id}`);
   const name = input.value.replace(/[\s\u3000]+/g, '');
   if (!name) { alert('请输入姓名'); return; }
-  
-  const isMember = globalAllMembers.some(m => m.name === name);
-  if (!isMember) { alert('报名失败：你不是本队队员（或入队申请暂未通过审核）。'); return; }
-  
+  if (!globalAllMembers.some(m => m.name === name)) {
+    alert('报名失败：你不是本队队员（或入队申请暂未通过审核）。'); return;
+  }
   const r = recruitsResData.find(x => x.id === id);
   let signups = (signupsResData || []).filter(s => s.recruitment_id === id);
-  
   if (signups.some(s => s.member_name === name)) { alert('你已经报过名啦！'); return; }
-
   const { error } = await supabase.from('recruitment_signups').insert({ recruitment_id: id, member_name: name });
-  
-  if (error) {
-    alert('报名失败：' + error.message);
-  } else {
-    signups.push({ member_name: name }); 
+  if (error) alert('报名失败：' + error.message);
+  else {
+    signups.push({ member_name: name });
     const shareText = generateShareText(r, signups);
     copyToClipboard(shareText);
-    
     document.getElementById('shareTextArea').value = shareText;
     document.getElementById('shareModal').style.display = 'flex';
   }
 };
-
 window.handleQuit = async (id) => {
   const input = document.getElementById(`signupName_${id}`);
   const name = input.value.replace(/[\s\u3000]+/g, '');
   if (!name) { alert('请输入姓名以退出'); return; }
-  
   const { data: existing } = await supabase.from('recruitment_signups').select('*').eq('recruitment_id', id).eq('member_name', name);
   if (!existing || existing.length === 0) { alert('未找到你的报名记录'); return; }
-
   if (!confirm(`确定退出【${name}】的接龙吗？`)) return;
-
   const { error } = await supabase.from('recruitment_signups').delete().eq('recruitment_id', id).eq('member_name', name);
   if (error) alert('退出失败：' + error.message);
   else { alert('已成功退出'); location.reload(); }
 };
-
 window.handleShare = (id) => {
   const r = recruitsResData.find(x => x.id === id);
   const signups = (signupsResData || []).filter(s => s.recruitment_id === id);
-  const shareText = generateShareText(r, signups);
-  
-  copyToClipboard(shareText);
+  copyToClipboard(generateShareText(r, signups));
   alert('招募文案已复制！\n\n请打开微信群，直接粘贴发送即可。');
 };
-
 function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).catch(err => {
-    const textarea = document.createElement('textarea');
-    textarea.value = text; document.body.appendChild(textarea); textarea.select(); document.execCommand('copy'); document.body.removeChild(textarea);
+  navigator.clipboard.writeText(text).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
   });
 }
-
-window.copyShareTextAgain = () => {
-  const text = document.getElementById('shareTextArea').value;
-  copyToClipboard(text);
-  alert('已重新复制！');
-};
-
-window.closeShareModal = () => {
-  location.reload();
-};
+window.copyShareTextAgain = () => { copyToClipboard(document.getElementById('shareTextArea').value); alert('已重新复制！'); };
+window.closeShareModal = () => location.reload();
 
 /* ============ 个人查询 ============ */
 window.doQuery = () => {
   const name = document.getElementById('queryNameInput').value.trim();
   const res = document.getElementById('queryResult');
   if (!name) { alert('请输入姓名'); return; }
-  
   const data = globalMemberStats[name];
-  if (!data) {
-    res.innerHTML = `<span style="color:#e53935;">未找到“${esc(name)}”的记录</span>`;
-    return;
-  }
-  
+  if (!data) { res.innerHTML = `<span style="color:#e53935;">未找到“${esc(name)}”的记录</span>`; return; }
   const fmt = (num) => parseFloat(num.toFixed(1));
   res.innerHTML = `
     <div style="background:#f4f7fb; padding:15px; border-radius:8px;">
       <p style="margin:0 0 10px; font-weight:400;">${esc(name)} 的出勤报告</p>
       <p style="margin:5px 0;">总时长：<strong style="color:#1565c0; font-size:18px; font-weight:400;">${fmt(data.total)}</strong> 小时</p>
       <p style="margin:5px 0; font-size:13px; color:#666; font-weight:300;">公益救援：${fmt(data.rescue)}h | 技能培训：${fmt(data.training)}h | 森林消防：${fmt(data.fire)}h</p>
-    </div>
-  `;
+    </div>`;
 };
 
-/* ============ 队员登录 / 个人中心 ============ */
+/* ============ 我的（队员登录 / 首次改密 / 个人中心） ============ */
 window.openMe = () => {
   renderMe();
   openModal('modal-me');
+};
+
+window.handleMeClose = () => {
+  if (pendingFirstLogin) {
+    if (!confirm('首次登录需要修改密码，确定退出登录吗？')) return;
+    currentMember = null;
+    sessionStorage.removeItem('member_name');
+    pendingFirstLogin = false;
+    renderMe();
+  }
+  closeModal('modal-me');
 };
 
 window.memberLogin = async () => {
@@ -1212,7 +1079,7 @@ window.memberLogin = async () => {
 
   const { data, error } = await supabase
     .from('members')
-    .select('id,name,phone')
+    .select('id,name,phone,pwd_changed')
     .eq('name', name)
     .eq('password', pwd)
     .eq('status', '在队')
@@ -1220,33 +1087,140 @@ window.memberLogin = async () => {
 
   btn.disabled = false; btn.textContent = '登 录';
 
-  if (error) { alert('登录失败：' + error.message); return; }
+  if (error) {
+    if (/pwd_changed|does not exist/i.test(error.message || '')) {
+      alert('系统数据库需要升级，请联系管理员执行升级 SQL（members 增加 pwd_changed 字段）。');
+    } else {
+      alert('登录失败：' + error.message);
+    }
+    return;
+  }
   if (!data) { alert('姓名或密码错误，或该队员尚未通过审核'); return; }
 
   currentMember = { id: data.id, name: data.name };
   sessionStorage.setItem('member_name', data.name);
   document.getElementById('mePwd').value = '';
+
+  if (!data.pwd_changed) {
+    // 首次登录，强制改密
+    pendingFirstLogin = true;
+    showChangePwdView();
+  } else {
+    pendingFirstLogin = false;
+    renderMe();
+  }
+};
+
+function showChangePwdView() {
+  document.getElementById('meLoginView').style.display = 'none';
+  document.getElementById('meProfileView').style.display = 'none';
+  document.getElementById('meChangePwdView').style.display = 'block';
+  document.getElementById('meTitle').textContent = '首次登录 · 修改密码';
+  document.getElementById('cpNewPwd').value = '';
+  document.getElementById('cpConfirmPwd').value = '';
+  document.getElementById('cpError').style.display = 'none';
+}
+
+window.submitChangePwd = async () => {
+  const np = document.getElementById('cpNewPwd').value.trim();
+  const cp = document.getElementById('cpConfirmPwd').value.trim();
+  const errEl = document.getElementById('cpError');
+  const showErr = (msg) => { errEl.textContent = msg; errEl.style.display = 'block'; };
+  errEl.style.display = 'none';
+
+  if (!np || np.length < 4) return showErr('新密码不少于 4 位');
+  if (np !== cp) return showErr('两次输入的密码不一致');
+  if (np === '0000') return showErr('新密码不能与初始密码相同');
+  if (!currentMember) return showErr('登录状态已失效，请重新登录');
+
+  const btn = document.getElementById('cpSubmitBtn');
+  btn.disabled = true; btn.textContent = '保存中...';
+
+  const { error } = await supabase
+    .from('members')
+    .update({ password: np, pwd_changed: true })
+    .eq('id', currentMember.id);
+
+  btn.disabled = false; btn.textContent = '保存新密码';
+
+  if (error) {
+    showErr('保存失败：' + error.message);
+    return;
+  }
+
+  pendingFirstLogin = false;
+  document.getElementById('meChangePwdView').style.display = 'none';
   renderMe();
+  alert('密码修改成功，请牢记新密码。');
+};
+
+window.cancelChangePwd = () => {
+  if (!confirm('取消修改将退出登录，确定吗？')) return;
+  currentMember = null;
+  sessionStorage.removeItem('member_name');
+  pendingFirstLogin = false;
+  renderMe();
+};
+
+// 已登录队员主动修改密码（在个人中心里）
+window.changePwdFromProfile = async () => {
+  if (!currentMember) return;
+  const oldPwd = prompt('请输入当前密码：');
+  if (!oldPwd) return;
+
+  const { data, error } = await supabase
+    .from('members')
+    .select('id')
+    .eq('id', currentMember.id)
+    .eq('password', oldPwd)
+    .maybeSingle();
+  if (error) { alert('校验失败：' + error.message); return; }
+  if (!data) { alert('当前密码不正确'); return; }
+
+  const np = prompt('请输入新密码（不少于 4 位）：');
+  if (!np || np.length < 4) { alert('新密码不少于 4 位'); return; }
+  const cp = prompt('再次输入新密码：');
+  if (np !== cp) { alert('两次输入的密码不一致'); return; }
+
+  const { error: e2 } = await supabase
+    .from('members')
+    .update({ password: np, pwd_changed: true })
+    .eq('id', currentMember.id);
+  if (e2) alert('修改失败：' + e2.message);
+  else alert('密码修改成功');
 };
 
 window.memberLogout = () => {
   currentMember = null;
   sessionStorage.removeItem('member_name');
+  pendingFirstLogin = false;
   renderMe();
 };
 
 function renderMe() {
   const loginView = document.getElementById('meLoginView');
   const profileView = document.getElementById('meProfileView');
-  if (!loginView || !profileView) return;
+  const changePwdView = document.getElementById('meChangePwdView');
+  if (!loginView || !profileView || !changePwdView) return;
+
+  document.getElementById('meTitle').textContent = '我的';
+
+  if (pendingFirstLogin) {
+    loginView.style.display = 'none';
+    profileView.style.display = 'none';
+    changePwdView.style.display = 'block';
+    return;
+  }
 
   if (!currentMember) {
     loginView.style.display = 'block';
     profileView.style.display = 'none';
+    changePwdView.style.display = 'none';
     return;
   }
 
   loginView.style.display = 'none';
+  changePwdView.style.display = 'none';
   profileView.style.display = 'block';
 
   const name = currentMember.name;
@@ -1258,7 +1232,6 @@ function renderMe() {
     if (mh.length) return mh.some(m => m.name === name);
     return (t.members || '').split(',').map(s => s.trim()).includes(name);
   });
-
   const myHours = (t) => {
     const mh = Array.isArray(t.member_hours) ? t.member_hours : [];
     const found = mh.find(m => m.name === name);
@@ -1284,51 +1257,57 @@ function renderMe() {
       </div>
     `).join('') : '<div class="me-empty">暂无参与记录</div>'}
 
+    <button class="btn-block me-change-pwd" onclick="changePwdFromProfile()">修改密码</button>
     <button class="btn-block me-logout" onclick="memberLogout()">退出登录</button>
   `;
 }
 
-/* ============ 通讯录 / 申请 ============ */
-window.unlockContacts = () => {
-  const pwd = document.getElementById('contactPassword').value;
-  if (pwd === CONTACT_PASSWORD) {
-    document.getElementById('contact-lock-view').style.display = 'none';
-    const view = document.getElementById('contact-data-view');
-    view.style.display = 'block';
-    
-    let html = '<table style="width:100%; border-collapse:collapse; font-size:13px; font-weight:300;">';
-    html += '<tr style="background:#f4f7fb; text-align:left; font-weight:400;"><th style="padding:8px;">姓名</th><th>电话</th></tr>';
-    globalAllMembers.forEach(m => {
-      html += `<tr><td style="padding:8px; border-bottom:1px solid #eee;">${esc(m.name)}</td><td style="border-bottom:1px solid #eee;"><a href="tel:${esc(m.phone)}" style="color:#1565c0; text-decoration:none;">${esc(m.phone)}</a></td></tr>`;
-    });
-    html += '</table>';
-    view.innerHTML = html;
-  } else {
-    alert('口令错误！');
+/* ============ 通讯录（仅登录后可见） ============ */
+window.openContact = () => {
+  if (!currentMember) {
+    alert('通讯录仅对已登录队员开放，请先登录');
+    openMe();
+    return;
   }
+  renderContactView();
+  openModal('modal-contact');
 };
 
+function renderContactView() {
+  const view = document.getElementById('contact-data-view');
+  let html = '<p style="font-size:12px; color:#90a4ae; margin:0 0 10px; font-weight:300;">仅登录队员可见，请勿外传。</p>';
+  html += '<table style="width:100%; border-collapse:collapse; font-size:13px; font-weight:300;">';
+  html += '<tr style="background:#f4f7fb; text-align:left; font-weight:400;"><th style="padding:8px;">姓名</th><th>电话</th></tr>';
+  globalAllMembers.forEach(m => {
+    const phone = m.phone || '';
+    html += `<tr>
+      <td style="padding:8px; border-bottom:1px solid #eee;">${esc(m.name)}</td>
+      <td style="border-bottom:1px solid #eee;">${phone ? `<a href="tel:${esc(phone)}" style="color:#1565c0; text-decoration:none;">${esc(phone)}</a>` : '<span style="color:#b0bec5;">-</span>'}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  view.innerHTML = html;
+}
+
+/* ============ 入队申请 ============ */
 window.submitApply = async () => {
   const btn = document.getElementById('applySubmitBtn');
   const name = document.getElementById('applyName').value.trim();
   if (!name) { alert('请输入姓名'); return; }
-  
   btn.disabled = true; btn.textContent = '提交中...';
-  
   const payload = {
     name,
     phone: document.getElementById('applyPhone').value.trim(),
     emergency_contact: document.getElementById('applyEmergency').value.trim(),
     status: '待审核',
-    password: '0000'
+    password: '0000',
+    pwd_changed: false
   };
   const { error } = await supabase.from('members').insert(payload);
-  
   btn.disabled = false; btn.textContent = '提交申请';
-  
   if (error) alert('提交失败：' + error.message);
   else {
-    alert('提交成功！请等待管理员审核，审核通过后可用姓名 + 默认密码 0000 登录。');
+    alert('提交成功！请等待管理员审核。审核通过后可用姓名 + 初始密码 0000 登录，登录后需修改密码。');
     closeModal('modal-apply');
   }
 };
@@ -1336,17 +1315,11 @@ window.submitApply = async () => {
 /* ============ 出勤榜单 ============ */
 window.toggleChart = () => {
   const chartDiv = document.getElementById('chart-section');
-  if (chartDiv.style.display === 'block') {
-    chartDiv.style.display = 'none';
-    return;
-  }
-  
+  if (chartDiv.style.display === 'block') { chartDiv.style.display = 'none'; return; }
   chartDiv.style.display = 'block';
-  
   if (Object.keys(globalMemberStats).length > 0) {
     const sorted = Object.entries(globalMemberStats).sort((a, b) => b[1].total - a[1].total);
     const top10 = sorted.slice(0, 10);
-    
     const barChart = echarts.init(document.getElementById('barChart'));
     barChart.setOption({
       title: { text: '出勤前十名', left: 'center', textStyle:{fontSize:14,color:'#666',fontWeight:300} },
@@ -1356,10 +1329,8 @@ window.toggleChart = () => {
       yAxis: { type: 'value', splitLine:{lineStyle:{type:'dashed'}}, axisLabel:{fontWeight:300} },
       series: [{ data: top10.map(x => x[1].total), type: 'bar', itemStyle: { color: '#42a5f5', borderRadius: [4,4,0,0] }, barMaxWidth: 20 }]
     });
-
     let tr=0, tt=0, tf=0;
     Object.values(globalMemberStats).forEach(d => { tr+=d.rescue; tt+=d.training; tf+=d.fire; });
-    
     const pieChart = echarts.init(document.getElementById('pieChart'));
     pieChart.setOption({
       title: { text: '任务类型占比', left: 'center', textStyle:{fontSize:14,color:'#666',fontWeight:300} },
@@ -1370,9 +1341,7 @@ window.toggleChart = () => {
         {value: tr, name: '公益救援'}, {value: tt, name: '技能培训'}, {value: tf, name: '森林消防'}
       ]}]
     });
-    
     window.addEventListener('resize', () => { barChart.resize(); pieChart.resize(); });
-
     renderStatsTable(top10);
   }
 };
@@ -1380,7 +1349,6 @@ window.toggleChart = () => {
 function renderStatsTable(top10) {
   const statsBox = document.getElementById('statsTableBox');
   const fmt = (num) => parseFloat(num.toFixed(1));
-
   statsBox.innerHTML = `
     <table class="stats-table">
       <thead><tr><th class="rank">排名</th><th>队员姓名</th><th>总时长</th></tr></thead>
@@ -1393,37 +1361,25 @@ function renderStatsTable(top10) {
           if (data.training > 0) detailsHtml += `<span class="detail-badge training">技能培训：${fmt(data.training)}h</span>`;
           if (data.fire > 0) detailsHtml += `<span class="detail-badge fire">森林消防：${fmt(data.fire)}h</span>`;
           if (detailsHtml === '') detailsHtml = '<span class="detail-badge">暂无分类明细</span>';
-
           return `
             <tr>
               <td class="rank ${rankClass}">${index + 1}</td>
               <td><span class="clickable-name" onclick="toggleDetail('detail-${index}', this)">${esc(name)} <span class="arrow">▼</span></span></td>
               <td class="total-col">${fmt(data.total)} 小时</td>
             </tr>
-            <tr id="detail-${index}" class="details-row" style="display: none;"><td colspan="3"><div class="details-flex">${detailsHtml}</div></td></tr>
-          `;
+            <tr id="detail-${index}" class="details-row" style="display: none;"><td colspan="3"><div class="details-flex">${detailsHtml}</div></td></tr>`;
         }).join('')}
       </tbody>
-    </table>
-  `;
+    </table>`;
 }
-
 window.toggleDetail = (detailId, nameElement) => {
   const detailRow = document.getElementById(detailId);
   const arrow = nameElement.querySelector('.arrow');
-  if (detailRow.style.display === 'none') { 
-    detailRow.style.display = 'table-row'; 
-    arrow.classList.add('open'); 
-  } else { 
-    detailRow.style.display = 'none'; 
-    arrow.classList.remove('open'); 
-  }
+  if (detailRow.style.display === 'none') { detailRow.style.display = 'table-row'; arrow.classList.add('open'); }
+  else { detailRow.style.display = 'none'; arrow.classList.remove('open'); }
 };
 
-window.scrollToHistory = () => {
-  document.getElementById('history-section').scrollIntoView({ behavior: 'smooth' });
-};
-
+window.scrollToHistory = () => document.getElementById('history-section').scrollIntoView({ behavior: 'smooth' });
 window.openModal = (id) => { document.getElementById(id).style.display = 'flex'; };
 window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
 
@@ -1431,12 +1387,11 @@ window.closeModal = (id) => { document.getElementById(id).style.display = 'none'
 function processTasksData(tasks) {
   globalMemberStats = {};
   tasks.forEach(t => {
-    const type = t.event_type || ''; 
+    const type = t.event_type || '';
     if (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0) {
       t.member_hours.forEach(m => {
         const hours = parseFloat(m.hours) || 0;
         const isCurrentMember = globalAllMembers.some(member => member.name === m.name);
-        
         if (hours > 0 && m.name && isCurrentMember) {
           if (!globalMemberStats[m.name]) globalMemberStats[m.name] = { rescue: 0, training: 0, fire: 0, total: 0 };
           globalMemberStats[m.name].total += hours;
@@ -1445,7 +1400,7 @@ function processTasksData(tasks) {
           else if (type === '森林消防') globalMemberStats[m.name].fire += hours;
         }
       });
-    } 
+    }
   });
 }
 
