@@ -187,7 +187,6 @@
   #posterModal .poster-actions button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; font-weight: 400;}
   #posterModal .pa-wechat { background: #07c160; color: #fff;}
   #posterModal .pa-link { background: #1565c0; color: #fff;}
-  #posterModal .pa-download { background: #eceff1; color: #546e7a;}
   .task-share-row { margin-top: 16px; display: flex; gap: 8px; }
   .task-share-row button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; font-weight: 400;}
   .btn-wechat { background: #07c160; color: #fff;}
@@ -313,7 +312,7 @@
     <div class="modal-title" id="meTitle">我的</div>
 
     <div id="meLoginView">
-      <p class="me-hint">队员登录后可查看自己的出勤时长、参与事件和队员通讯录。<br>首次登录初始密码为 <strong>0000</strong>。</p>
+      <p class="me-hint">队员登录后可查看自己的出勤时长、参与事件和队员通讯录。<br>首次登录初始密码为 <strong>0000</strong>，登录后需修改密码。</p>
       <div class="input-group"><input id="meName" placeholder="真实姓名"></div>
       <div class="input-group"><input id="mePwd" type="password" placeholder="密码"></div>
       <button class="btn-block" onclick="memberLogin()" id="meLoginBtn">登 录</button>
@@ -451,8 +450,9 @@ let globalAllTasks = [];
 let globalAllMembers = [];
 let recruitsResData = null;
 let signupsResData = null;
-let currentMember = null;       // { id, name }
-let pendingFirstLogin = false;  // 首次登录待改密
+let currentMember = null;          // { id, name }
+let pendingFirstLogin = false;     // 首次登录待改密
+let pendingOldPassword = '';       // 首次登录时暂存输入的初始密码
 let currentTypeFilter = 'all';
 let currentPosterTaskId = null;
 
@@ -460,7 +460,7 @@ const { data: { session } } = await supabase.auth.getSession();
 
 const [tasksRes, membersRes, recruitsRes, signupsRes, settingsRes] = await Promise.all([
   supabase.from('tasks').select('*').order('task_time', { ascending: false }),
-  // 注意：不再 select *，避免把队员密码拉下来
+  // 不 select password，避免密码被前端拿到
   supabase.from('members').select('id,name,phone,status,emergency_contact,pwd_changed').eq('status', '在队').order('name'),
   supabase.from('recruitments').select('*').eq('status', '招募中').order('created_at', { ascending: false }),
   supabase.from('recruitment_signups').select('*'),
@@ -480,7 +480,7 @@ if (membersRes.error) {
 const savedMemberName = sessionStorage.getItem('member_name');
 if (savedMemberName && globalAllMembers.some(m => m.name === savedMemberName)) {
   const m = globalAllMembers.find(x => x.name === savedMemberName);
-  currentMember = { id: m.id, name: m.name };
+  currentMember = { id: String(m.id), name: m.name };
 }
 
 renderSettingsContent(allSettings);
@@ -972,7 +972,7 @@ window.copyTaskShareLink = () => {
   alert('活动链接与文案已复制！');
 };
 
-/* ============ 分享（招募） ============ */
+/* ============ 招募分享 ============ */
 function generateShareText(r, signups) {
   const siteUrl = window.location.href.split('?')[0];
   let text = `【云和·蓝天救援队 任务招募】\n\n`;
@@ -1051,7 +1051,7 @@ window.doQuery = () => {
     </div>`;
 };
 
-/* ============ 我的（队员登录 / 首次改密 / 个人中心） ============ */
+/* ============ 队员登录 / 首次改密 / 个人中心 ============ */
 window.openMe = () => {
   renderMe();
   openModal('modal-me');
@@ -1063,11 +1063,13 @@ window.handleMeClose = () => {
     currentMember = null;
     sessionStorage.removeItem('member_name');
     pendingFirstLogin = false;
+    pendingOldPassword = '';
     renderMe();
   }
   closeModal('modal-me');
 };
 
+// 使用 RPC 校验登录，绕过 RLS 且不把密码字段返回前端
 window.memberLogin = async () => {
   const name = document.getElementById('meName').value.trim();
   const pwd = document.getElementById('mePwd').value.trim();
@@ -1077,36 +1079,37 @@ window.memberLogin = async () => {
   const btn = document.getElementById('meLoginBtn');
   btn.disabled = true; btn.textContent = '登录中...';
 
-  const { data, error } = await supabase
-    .from('members')
-    .select('id,name,phone,pwd_changed')
-    .eq('name', name)
-    .eq('password', pwd)
-    .eq('status', '在队')
-    .maybeSingle();
+  const { data, error } = await supabase.rpc('verify_member_login', {
+    p_name: name,
+    p_password: pwd
+  });
 
   btn.disabled = false; btn.textContent = '登 录';
 
   if (error) {
-    if (/pwd_changed|does not exist/i.test(error.message || '')) {
-      alert('系统数据库需要升级，请联系管理员执行升级 SQL（members 增加 pwd_changed 字段）。');
+    if (/function .* does not exist|could not find/i.test(error.message || '')) {
+      alert('系统尚未部署登录函数，请联系管理员在 Supabase 执行升级 SQL（verify_member_login / set_member_password）。');
     } else {
       alert('登录失败：' + error.message);
     }
     return;
   }
-  if (!data) { alert('姓名或密码错误，或该队员尚未通过审核'); return; }
 
-  currentMember = { id: data.id, name: data.name };
-  sessionStorage.setItem('member_name', data.name);
+  const row = Array.isArray(data) ? data[0] : null;
+  if (!row) { alert('姓名或密码错误，或该队员尚未通过审核'); return; }
+
+  currentMember = { id: String(row.id), name: row.name };
+  sessionStorage.setItem('member_name', row.name);
   document.getElementById('mePwd').value = '';
 
-  if (!data.pwd_changed) {
+  if (!row.pwd_changed) {
     // 首次登录，强制改密
     pendingFirstLogin = true;
+    pendingOldPassword = pwd;    // 记住刚输入的初始密码，用于校验
     showChangePwdView();
   } else {
     pendingFirstLogin = false;
+    pendingOldPassword = '';
     renderMe();
   }
 };
@@ -1121,6 +1124,7 @@ function showChangePwdView() {
   document.getElementById('cpError').style.display = 'none';
 }
 
+// 首次登录修改密码，使用 RPC 写入，绕过 RLS
 window.submitChangePwd = async () => {
   const np = document.getElementById('cpNewPwd').value.trim();
   const cp = document.getElementById('cpConfirmPwd').value.trim();
@@ -1132,23 +1136,34 @@ window.submitChangePwd = async () => {
   if (np !== cp) return showErr('两次输入的密码不一致');
   if (np === '0000') return showErr('新密码不能与初始密码相同');
   if (!currentMember) return showErr('登录状态已失效，请重新登录');
+  if (!pendingOldPassword) return showErr('会话已过期，请退出后重新登录');
 
   const btn = document.getElementById('cpSubmitBtn');
   btn.disabled = true; btn.textContent = '保存中...';
 
-  const { error } = await supabase
-    .from('members')
-    .update({ password: np, pwd_changed: true })
-    .eq('id', currentMember.id);
+  const { data, error } = await supabase.rpc('set_member_password', {
+    p_id: currentMember.id,
+    p_old_password: pendingOldPassword,
+    p_new_password: np
+  });
 
   btn.disabled = false; btn.textContent = '保存新密码';
 
   if (error) {
-    showErr('保存失败：' + error.message);
+    if (/function .* does not exist|could not find/i.test(error.message || '')) {
+      showErr('系统尚未部署改密函数，请联系管理员执行升级 SQL。');
+    } else {
+      showErr('保存失败：' + error.message);
+    }
+    return;
+  }
+  if (!data) {
+    showErr('旧密码校验失败或新密码不合法，请退出后重新登录');
     return;
   }
 
   pendingFirstLogin = false;
+  pendingOldPassword = '';
   document.getElementById('meChangePwdView').style.display = 'none';
   renderMe();
   alert('密码修改成功，请牢记新密码。');
@@ -1159,41 +1174,38 @@ window.cancelChangePwd = () => {
   currentMember = null;
   sessionStorage.removeItem('member_name');
   pendingFirstLogin = false;
+  pendingOldPassword = '';
   renderMe();
 };
 
-// 已登录队员主动修改密码（在个人中心里）
+// 个人中心内主动修改密码
 window.changePwdFromProfile = async () => {
   if (!currentMember) return;
   const oldPwd = prompt('请输入当前密码：');
   if (!oldPwd) return;
 
-  const { data, error } = await supabase
-    .from('members')
-    .select('id')
-    .eq('id', currentMember.id)
-    .eq('password', oldPwd)
-    .maybeSingle();
-  if (error) { alert('校验失败：' + error.message); return; }
-  if (!data) { alert('当前密码不正确'); return; }
-
   const np = prompt('请输入新密码（不少于 4 位）：');
   if (!np || np.length < 4) { alert('新密码不少于 4 位'); return; }
+
   const cp = prompt('再次输入新密码：');
   if (np !== cp) { alert('两次输入的密码不一致'); return; }
 
-  const { error: e2 } = await supabase
-    .from('members')
-    .update({ password: np, pwd_changed: true })
-    .eq('id', currentMember.id);
-  if (e2) alert('修改失败：' + e2.message);
-  else alert('密码修改成功');
+  const { data, error } = await supabase.rpc('set_member_password', {
+    p_id: currentMember.id,
+    p_old_password: oldPwd,
+    p_new_password: np
+  });
+
+  if (error) { alert('修改失败：' + error.message); return; }
+  if (!data) { alert('当前密码不正确'); return; }
+  alert('密码修改成功');
 };
 
 window.memberLogout = () => {
   currentMember = null;
   sessionStorage.removeItem('member_name');
   pendingFirstLogin = false;
+  pendingOldPassword = '';
   renderMe();
 };
 
