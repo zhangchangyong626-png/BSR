@@ -176,6 +176,11 @@
   <!-- 2. 任务招募 -->
   <div id="panel-recruit" class="panel">
     <h2>任务招募管理</h2>
+
+    <div id="recruitPendingBox" style="display:none; background:#fff3e0; border:1px solid #ffe0b2; border-radius:8px; padding:12px 15px; margin-bottom:15px; color:#e65100; font-size:13px; font-weight:300; line-height:1.6;">
+      有 <strong id="recruitPendingCount">0</strong> 条队员发起的招募令待审核，已在下方列表置顶显示，请及时处理。
+    </div>
+
     <form id="recruitForm" style="background:#f9fbfd; padding:15px; border-radius:8px; border:1px solid #eceff1; margin-bottom:15px;">
       <input type="hidden" id="recruitEditId">
       <div class="grid-2">
@@ -509,37 +514,89 @@ function renderRecruits() {
   const container = document.getElementById('recruitCardList');
   if (allRecruits.length === 0) {
     container.innerHTML = '<div style="text-align:center;color:#90a4ae;padding:20px;font-weight:300;">暂无招募令</div>';
+    const pb = document.getElementById('recruitPendingBox');
+    if (pb) pb.style.display = 'none';
     return;
   }
-  container.innerHTML = allRecruits.map(r => {
+
+  // 待审核提示
+  const pendingTotal = allRecruits.filter(r => r.status === '待审核').length;
+  const pBox = document.getElementById('recruitPendingBox');
+  if (pBox) {
+    if (pendingTotal > 0) {
+      pBox.style.display = 'block';
+      document.getElementById('recruitPendingCount').textContent = pendingTotal;
+    } else {
+      pBox.style.display = 'none';
+    }
+  }
+
+  // 待审核置顶
+  const sorted = [...allRecruits].sort(
+    (a, b) => (a.status === '待审核' ? 0 : 1) - (b.status === '待审核' ? 0 : 1)
+  );
+
+  container.innerHTML = sorted.map(r => {
     const signups = allSignups.filter(s => s.recruitment_id === r.id);
     const names = signups.map(s => `<span class="tag tag-blue" style="margin:2px;">${esc(s.member_name)}</span>`).join('');
+
+    const isPending = r.status === '待审核';
     const isExpired = r.task_time ? new Date(r.task_time).getTime() < Date.now() : false;
-    const statusStr = isExpired ? '已结束' : (r.status || '已结束');
-    const statusTag = statusStr === '招募中' ? '<span class="tag tag-green">● 招募中</span>' : '<span class="tag tag-gray">○ 已结束</span>';
+
+    let statusTag = '';
+    if (isPending)                 statusTag = '<span class="tag tag-orange">⏳ 待审核</span>';
+    else if (isExpired)            statusTag = '<span class="tag tag-gray">○ 已结束</span>';
+    else if (r.status === '招募中') statusTag = '<span class="tag tag-green">● 招募中</span>';
+    else                           statusTag = '<span class="tag tag-gray">○ 已结束</span>';
+
     const typeTag = r.event_type ? `<span class="tag tag-blue">${esc(r.event_type)}</span>` : '';
-    let uniformTags = r.uniform_type ? r.uniform_type.split(',').map(u => `<span class="tag tag-orange">${esc(u.trim())}</span>`).join('') : '';
+    const uniformTags = r.uniform_type
+      ? r.uniform_type.split(',').map(u => `<span class="tag tag-orange">${esc(u.trim())}</span>`).join('')
+      : '';
+
+    // 从 content 前缀解析发起人
+    const creatorMatch = (r.content || '').match(/^【发起人：(.+?)】/);
+    const creatorLine = creatorMatch
+      ? `<div><span>发起人：</span>${esc(creatorMatch[1])}</div>` : '';
+
+    const auditBtns = isPending
+      ? `<button class="btn btn-sm btn-green" onclick="approveRecruit(${r.id})">审核通过</button>
+         <button class="btn btn-sm btn-red" onclick="rejectRecruit(${r.id})">拒绝删除</button>`
+      : `<button class="btn btn-sm btn-gray" onclick="editRecruit(${r.id})">编辑</button>
+         <button class="btn btn-sm btn-blue" onclick="shareToWeChat(${r.id})">分享</button>
+         <button class="btn btn-sm btn-blue" onclick="convertToTask(${r.id})">转出勤</button>
+         <button class="btn btn-sm btn-gray" onclick="toggleRecruitStatus(${r.id}, '${r.status}')">${(r.status === '招募中' && !isExpired) ? '结束' : '开启'}</button>
+         <button class="btn btn-sm btn-red" onclick="deleteRecruit(${r.id})">删除</button>`;
+
     return `
-      <div class="mobile-card">
+      <div class="mobile-card"${isPending ? ' style="border-color:#ffe0b2; box-shadow:0 0 0 2px #fff3e0;"' : ''}>
         <div class="mc-header">
           <div class="mc-title">${esc(r.title)}</div>
           ${statusTag}
         </div>
         <div class="mc-body">
+          ${creatorLine}
           <div><span>类型：</span>${typeTag} ${uniformTags}</div>
           <div><span>时间：</span>${formatTime(r.task_time)}</div>
+          <div><span>地点：</span>${esc(r.location) || '待定'}</div>
           <div class="mc-members"><strong>报名 (${signups.length})：</strong>${names || '无'}</div>
         </div>
-        <div class="mc-actions">
-          <button class="btn btn-sm btn-gray" onclick="editRecruit(${r.id})">编辑</button>
-          <button class="btn btn-sm btn-red" onclick="shareToWeChat(${r.id})">分享</button>
-          <button class="btn btn-sm btn-blue" onclick="convertToTask(${r.id})">转出勤</button>
-          <button class="btn btn-sm btn-gray" onclick="toggleRecruitStatus(${r.id}, '${r.status}')">${statusStr === '招募中' ? '结束' : '开启'}</button>
-          <button class="btn btn-sm btn-red" onclick="deleteRecruit(${r.id})">删除</button>
-        </div>
+        <div class="mc-actions">${auditBtns}</div>
       </div>`;
   }).join('');
 }
+
+window.approveRecruit = async (id) => {
+  const { error } = await supabase.from('recruitments').update({ status: '招募中' }).eq('id', id);
+  if (error) { alert('审核失败：' + error.message); return; }
+  loadRecruits().then(renderRecruits);
+};
+
+window.rejectRecruit = async (id) => {
+  if (!confirm('确定拒绝该招募令？拒绝后将永久删除。')) return;
+  await supabase.from('recruitments').delete().eq('id', id);
+  loadRecruits().then(renderRecruits);
+};
 
 window.editRecruit = (id) => {
   const r = allRecruits.find(x => String(x.id) === String(id));
