@@ -11,7 +11,7 @@
   :root { --primary: #1565c0; --bg-color: #f4f5f7; }
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; font-weight: 300; background: var(--bg-color); color: #333; margin: 0; padding-bottom: 70px; max-width: 600px; margin: 0 auto; position: relative;}
-  
+
   h1, h2, h3, h4, th, strong, b, .modal-title { font-weight: 400 !important; }
 
   .app-header { background: #0d47a1; padding: 0; display: block; position: relative; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -31,7 +31,7 @@
   .grid-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
   .grid-icon svg { width: 24px; height: 24px; fill: #fff; }
   .grid-text { font-size: 11px; font-weight: 300; color: #546e7a; }
-  
+
   .bg-blue { background: linear-gradient(135deg, #64b5f6, #2196f3); }
   .bg-orange { background: linear-gradient(135deg, #ffb74d, #f57c00); }
   .bg-purple { background: linear-gradient(135deg, #ba68c8, #8e24aa); }
@@ -119,7 +119,7 @@
   .input-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; font-weight: 300;}
   .btn-block { width: 100%; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; font-weight: 300;}
   .btn-block:disabled { opacity: .6; cursor: not-allowed; }
-  
+
   #shareModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; flex-direction: column; align-items: center; justify-content: center; }
   .share-modal-content { background: #fff; width: 90%; max-width: 350px; border-radius: 12px; overflow: hidden; text-align: center; }
   .share-modal-header { background: #e53935; color: #fff; padding: 15px; font-size: 18px; font-weight: 400; }
@@ -285,9 +285,9 @@
     <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     首页
   </div>
-  <div class="tab-btn" onclick="openModal('modal-query')">
-    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-    查询
+  <div class="tab-btn" onclick="openCreateTask()">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    发起任务
   </div>
   <div class="tab-btn" onclick="openMe()">
     <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -374,6 +374,45 @@
   </div>
 </div>
 
+<!-- 新增：发起任务弹窗 -->
+<div id="modal-create-task" class="modal">
+  <div class="modal-content">
+    <div class="close-btn" onclick="closeModal('modal-create-task')">×</div>
+    <div class="modal-title">发起任务招募</div>
+    <p class="me-hint" style="margin-top:-6px;">填写任务信息提交后，需管理员审核通过才会在首页「任务招募接龙」中展示。</p>
+
+    <div class="input-group"><input id="ctCreator" placeholder="你的真实姓名（须为在队队员）" required></div>
+    <div class="input-group"><input id="ctTitle" placeholder="任务标题" required></div>
+
+    <div style="margin-bottom:12px;">
+      <label style="font-size:13px; color:#607d8b; display:block; margin-bottom:6px; font-weight:300;">任务类型</label>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:13px; font-weight:300;">
+        <label style="display:flex; align-items:center; gap:4px;"><input type="radio" name="ct_type" value="公益救援" checked> 公益救援</label>
+        <label style="display:flex; align-items:center; gap:4px;"><input type="radio" name="ct_type" value="技能培训"> 技能培训</label>
+        <label style="display:flex; align-items:center; gap:4px;"><input type="radio" name="ct_type" value="森林消防"> 森林消防</label>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <label style="font-size:13px; color:#607d8b; display:block; margin-bottom:6px; font-weight:300;">着装要求（可多选）</label>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; font-size:13px; font-weight:300;">
+        <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" name="ct_uniform" value="蓝天队服"> 蓝天队服</label>
+        <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" name="ct_uniform" value="体能服"> 体能服</label>
+        <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" name="ct_uniform" value="消防服"> 消防服</label>
+        <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" name="ct_uniform" value="便装"> 便装</label>
+      </div>
+    </div>
+
+    <div class="input-group"><input id="ctLocation" placeholder="活动地点"></div>
+    <div class="input-group"><input id="ctTime" type="datetime-local"></div>
+    <div class="input-group">
+      <textarea id="ctContent" placeholder="任务详情 / 要求" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; font-family:inherit; font-weight:300; min-height:72px; outline:none; resize:vertical; box-sizing:border-box;"></textarea>
+    </div>
+
+    <button class="btn-block" id="ctSubmitBtn" onclick="submitCreateTask()">提交审核</button>
+  </div>
+</div>
+
 <div id="modal-intro" class="modal">
   <div class="modal-content">
     <div class="close-btn" onclick="closeModal('modal-intro')">×</div>
@@ -445,16 +484,19 @@ let bannerIndex = 0;
 let bannerTimer = null;
 let suppressBannerClick = false;
 
-let globalMemberStats = {}; 
+let globalMemberStats = {};
 let globalAllTasks = [];
 let globalAllMembers = [];
 let recruitsResData = null;
 let signupsResData = null;
-let currentMember = null;          
-let pendingFirstLogin = false;     
-let pendingOldPassword = '';       
+let currentMember = null;
+let pendingFirstLogin = false;
+let pendingOldPassword = '';
 let currentTypeFilter = 'all';
 let currentPosterTaskId = null;
+
+let barChartInstance = null;
+let pieChartInstance = null;
 
 const { data: { session } } = await supabase.auth.getSession();
 
@@ -498,6 +540,7 @@ bindHistoryTabs();
   } catch (e) {}
 })();
 
+/* ============ 工具 ============ */
 function getPhotos(t) {
   if (!t || !t.photos) return [];
   if (Array.isArray(t.photos)) return t.photos.filter(Boolean);
@@ -506,6 +549,36 @@ function getPhotos(t) {
     return Array.isArray(p) ? p.filter(Boolean) : [];
   } catch { return []; }
 }
+function formatTime(t) {
+  if (!t) return '待定';
+  const d = new Date(t);
+  if (isNaN(d)) return t;
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+/* ============ 弹窗开关 ============ */
+window.openModal = (id) => {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
+};
+window.closeModal = (id) => {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+};
 
 /* ============ 轮播 ============ */
 function renderBanners(list) {
@@ -656,6 +729,7 @@ function renderRecruits() {
     document.getElementById('recruit-section').style.display = 'none';
     return;
   }
+  document.getElementById('recruit-section').style.display = 'block';
   container.innerHTML = recruitsResData.map(r => {
     const signups = (signupsResData || []).filter(s => s.recruitment_id === r.id);
     const signupNames = signups.map(s => `<span class="signup-tag">${esc(s.member_name)}</span>`).join('');
@@ -691,6 +765,66 @@ function renderRecruits() {
       </div>`;
   }).join('');
 }
+
+function buildRecruitShareText(r, signups) {
+  let text = `【云和·蓝天救援队 任务招募】\n\n[类型] ${r.event_type || '待定'}\n[着装] ${r.uniform_type || '无特殊要求'}\n[任务] ${r.title}\n[时间] ${formatTime(r.task_time)}\n[地点] ${r.location || '待定'}\n`;
+  if (r.content) text += `[详情] ${r.content}\n`;
+  text += `\n[报名] 已有 ${signups.length} 人报名：\n${signups.map(s => s.member_name).join('、') || '（暂无）'}\n\n请点击下方链接接龙：\n${window.location.href.split('?')[0]}\n`;
+  return text;
+}
+
+window.handleSignup = async (id) => {
+  const nameInput = document.getElementById(`signupName_${id}`);
+  const name = nameInput.value.trim();
+  if (!name) { alert('请输入姓名'); return; }
+  if (!globalAllMembers.some(m => m.name === name)) { alert('未在「在队队员」名单中找到该姓名'); return; }
+  const exists = (signupsResData || []).find(s => s.recruitment_id === id && s.member_name === name);
+  if (exists) { alert('你已报名'); return; }
+  const { error } = await supabase.from('recruitment_signups').insert({ recruitment_id: id, member_name: name });
+  if (error) { alert('报名失败：' + error.message); return; }
+  const { data } = await supabase.from('recruitment_signups').select('*');
+  signupsResData = data || [];
+  renderRecruits();
+  const r = recruitsResData.find(x => x.id === id);
+  const signups = signupsResData.filter(s => s.recruitment_id === id);
+  const shareText = buildRecruitShareText(r, signups);
+  document.getElementById('shareTextArea').value = shareText;
+  copyToClipboard(shareText);
+  document.getElementById('shareModal').style.display = 'flex';
+};
+
+window.handleShare = (id) => {
+  const r = recruitsResData.find(x => x.id === id);
+  if (!r) return;
+  const signups = (signupsResData || []).filter(s => s.recruitment_id === id);
+  const text = buildRecruitShareText(r, signups);
+  document.getElementById('shareTextArea').value = text;
+  copyToClipboard(text);
+  document.getElementById('shareModal').style.display = 'flex';
+};
+
+window.handleQuit = async (id) => {
+  const nameInput = document.getElementById(`signupName_${id}`);
+  const name = nameInput.value.trim();
+  if (!name) { alert('请输入姓名'); return; }
+  const exists = (signupsResData || []).find(s => s.recruitment_id === id && s.member_name === name);
+  if (!exists) { alert('你未报名此任务'); return; }
+  if (!confirm(`确定让「${name}」退出此任务报名？`)) return;
+  await supabase.from('recruitment_signups').delete().eq('id', exists.id);
+  const { data } = await supabase.from('recruitment_signups').select('*');
+  signupsResData = data || [];
+  renderRecruits();
+  alert('已退出');
+};
+
+window.copyShareTextAgain = () => {
+  const text = document.getElementById('shareTextArea').value;
+  copyToClipboard(text);
+  alert('已再次复制');
+};
+window.closeShareModal = () => {
+  document.getElementById('shareModal').style.display = 'none';
+};
 
 /* ============ 历史活动 ============ */
 function bindHistoryTabs() {
@@ -773,48 +907,114 @@ window.closePhotoViewer = () => {
 
 /* ============ 海报 ============ */
 function getTaskShareUrl(id) {
-  const base = window.location.href.split('?')[0].split('#')[0];
-  return `${base}?task=${encodeURIComponent(id)}`;
+  const base = window.location.href.split('?')[0];
+  return `${base}?task=${id}`;
 }
-function loadImage(url, useCors = true) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    if (useCors) img.crossOrigin = 'anonymous';
-    let settled = false;
-    img.onload = () => { if (!settled) { settled = true; resolve(img); } };
-    img.onerror = () => { if (!settled) { settled = true; reject(new Error('图片加载失败')); } };
-    img.src = url;
-    setTimeout(() => { if (!settled) { settled = true; reject(new Error('图片加载超时')); } }, 15000);
-  });
-}
-function drawImageCover(ctx, img, x, y, w, h) {
-  const iw = img.width, ih = img.height;
-  if (!iw || !ih) return;
-  const scale = Math.max(w / iw, h / ih);
-  const sw = w / scale, sh = h / scale;
-  const sx = (iw - sw) / 2, sy = (ih - sh) / 2;
-  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-}
-function wrapText(ctx, text, maxWidth, maxLines = 2) {
-  const chars = String(text || '').split('');
-  const lines = [];
-  let cur = '';
-  for (const ch of chars) {
-    const test = cur + ch;
-    if (ctx.measureText(test).width > maxWidth) {
-      if (lines.length === maxLines - 1) {
-        let truncated = cur;
-        while (truncated && ctx.measureText(truncated + '…').width > maxWidth) truncated = truncated.slice(0, -1);
-        lines.push(truncated + '…');
-        return lines;
-      }
-      lines.push(cur); cur = ch;
-    } else cur = test;
+
+window.shareTaskToWeChat = (id) => {
+  currentPosterTaskId = id;
+  document.getElementById('posterModal').style.display = 'flex';
+  document.getElementById('posterLoading').style.display = 'block';
+  document.getElementById('posterResult').style.display = 'none';
+  generatePoster(id);
+};
+
+async function generatePoster(id) {
+  const t = globalAllTasks.find(x => String(x.id) === String(id));
+  if (!t) { closePoster(); return; }
+
+  const shareUrl = getTaskShareUrl(id);
+
+  const qrCanvas = document.createElement('canvas');
+  try {
+    await QRCode.toCanvas(qrCanvas, shareUrl, { width: 220, margin: 1 });
+  } catch (e) {
+    console.warn('QR 生成失败', e);
   }
-  if (cur) lines.push(cur);
-  return lines;
+
+  const canvas = document.createElement('canvas');
+  const W = 750, H = 1200;
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // 背景
+  ctx.fillStyle = '#f4f5f7';
+  ctx.fillRect(0, 0, W, H);
+
+  // 顶部蓝条
+  ctx.fillStyle = '#1565c0';
+  ctx.fillRect(0, 0, W, 200);
+
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'left';
+  ctx.font = '400 40px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText('云和 · 蓝天救援队', 50, 90);
+  ctx.font = '300 24px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText('活动记录分享', 50, 140);
+
+  // 白卡片
+  const cardY = 230;
+  const cardH = 640;
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = 'rgba(0,0,0,0.08)';
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetY = 4;
+  roundRect(ctx, 40, cardY, W - 80, cardH, 16);
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  // 标题
+  ctx.fillStyle = '#333';
+  ctx.font = '400 32px -apple-system, "PingFang SC", sans-serif';
+  let yPos = wrapText(ctx, t.title || '活动记录', 70, cardY + 60, W - 140, 42) + 24;
+
+  // 类型/时间/时长
+  ctx.fillStyle = '#546e7a';
+  ctx.font = '300 22px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText(`类型：${t.event_type || '无'}`, 70, yPos); yPos += 40;
+  ctx.fillText(`时间：${formatTime(t.task_time)}`, 70, yPos); yPos += 40;
+  ctx.fillText(`时长：${t.duration || '-'} 小时`, 70, yPos); yPos += 50;
+
+  // 内容
+  ctx.fillStyle = '#444';
+  ctx.font = '300 22px -apple-system, "PingFang SC", sans-serif';
+  const content = (t.content || '').slice(0, 200);
+  wrapText(ctx, content, 70, yPos, W - 140, 34);
+
+  // 底部二维码区
+  const bottomY = 920;
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = 'rgba(0,0,0,0.08)';
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetY = 4;
+  roundRect(ctx, 40, bottomY, W - 80, 200, 16);
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  if (qrCanvas.width) {
+    const qrSize = 160;
+    const qrX = (W - qrSize) / 2;
+    ctx.drawImage(qrCanvas, qrX, bottomY + 20, qrSize, qrSize);
+  }
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#78909c';
+  ctx.font = '300 20px -apple-system, "PingFang SC", sans-serif';
+  ctx.fillText('长按识别二维码 · 查看完整活动详情', W / 2, H - 50);
+
+  const dataUrl = canvas.toDataURL('image/png');
+  document.getElementById('posterImg').src = dataUrl;
+  document.getElementById('posterLoading').style.display = 'none';
+  document.getElementById('posterResult').style.display = 'block';
+  window._currentPosterDataUrl = dataUrl;
 }
-function drawRoundRect(ctx, x, y, w, h, r) {
+
+function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -823,622 +1023,447 @@ function drawRoundRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y, x + w, y, r);
   ctx.closePath();
 }
-
-async function buildTaskPoster(t) {
-  const W = 750, H = 1150;
-  const canvas = document.createElement('canvas');
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
-
-  // 1. 绘制首图
-  const photoH = 560;
-  const photos = getPhotos(t);
-  let imgOk = false;
-  if (photos.length > 0) {
-    try {
-      const img = await loadImage(photos[0]);
-      drawImageCover(ctx, img, 0, 0, W, photoH);
-      imgOk = true;
-    } catch (err) {
-      console.warn('首图加载失败，使用默认背景', err);
-    }
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  if (!text) return y;
+  const chars = String(text).split('');
+  let line = '';
+  let curY = y;
+  for (let i = 0; i < chars.length; i++) {
+    const ch = chars[i];
+    if (ch === '\n') { ctx.fillText(line, x, curY); line = ''; curY += lineHeight; continue; }
+    const test = line + ch;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, curY);
+      line = ch;
+      curY += lineHeight;
+    } else { line = test; }
   }
-  if (!imgOk) {
-    const grad = ctx.createLinearGradient(0, 0, W, photoH);
-    grad.addColorStop(0, '#0d47a1');
-    grad.addColorStop(0.5, '#1976d2');
-    grad.addColorStop(1, '#42a5f5');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, photoH);
-    ctx.fillStyle = 'rgba(255,255,255,.18)';
-    ctx.font = 'bold 90px "PingFang SC", "Microsoft YaHei", sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('蓝天救援', W / 2, photoH / 2 + 20);
-  }
-
-  // 2. 绘制左上角类型标签
-  if (t.event_type) {
-    ctx.font = '500 28px "PingFang SC", "Microsoft YaHei", sans-serif';
-    const tw = ctx.measureText(t.event_type).width + 48;
-    ctx.fillStyle = 'rgba(0,0,0,.6)';
-    drawRoundRect(ctx, 30, 30, tw, 56, 28);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(t.event_type, 30 + tw / 2, 58);
-  }
-
-  // 3. 绘制活动标题
-  let y = photoH + 50;
-  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  ctx.fillStyle = '#1f2d3d';
-  ctx.font = 'bold 42px "PingFang SC", "Microsoft YaHei", sans-serif';
-  wrapText(ctx, t.title || '活动', W - 80, 2).forEach(line => {
-    ctx.fillText(line, 40, y);
-    y += 56;
-  });
-
-  // 4. 绘制时间和时长
-  y += 10;
-  ctx.font = '28px "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillStyle = '#607d8b';
-  ctx.fillText(`时间：${formatTime(t.task_time)}`, 40, y); y += 46;
-  ctx.fillText(`时长：${(t.duration || '-')} 小时`, 40, y); y += 46;
-
-  // 5. 绘制参与人员（修复：自动换行，不再截断）
-  const members = Array.isArray(t.member_hours) && t.member_hours.length
-    ? t.member_hours.map(m => m.name).join('、')
-    : (t.members || '');
-  
-  if (members) {
-    ctx.fillStyle = '#607d8b'; 
-    ctx.fillText('队员：', 40, y);
-    ctx.fillStyle = '#1565c0';
-    
-    const memberTextX = 134; // "队员：" 之后的起始X坐标
-    const maxTextWidth = W - memberTextX - 40; // 剩余可用宽度
-    // 使用 wrapText 函数自动换行，最多画4行，防止内容过长超出海报
-    const memberLines = wrapText(ctx, members, maxTextWidth, 4); 
-    
-    memberLines.forEach((line, idx) => {
-      ctx.fillText(line, memberTextX, y + idx * 40);
-    });
-    y += (memberLines.length * 40) + 10; // 动态增加Y轴高度
-  }
-
-  // 6. 绘制底部品牌区
-  const brandY = H - 240;
-  ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(40, brandY); ctx.lineTo(W - 40, brandY); ctx.stroke();
-
-  // 7. 绘制二维码（修复：增加容错和延迟加载）
-  const qrSize = 160;
-  const qrX = W - 40 - qrSize;
-  const qrY = H - 40 - qrSize;
-  const taskUrl = getTaskShareUrl(t.id);
-  let qrOk = false;
-  
-  if (typeof QRCode !== 'undefined') {
-    try {
-      const qrDataUrl = await QRCode.toDataURL(taskUrl, {
-        width: 320, margin: 1, errorCorrectionLevel: 'M',
-        color: { dark: '#0d47a1', light: '#ffffff' }
-      });
-      // 使用 Promise 确保二维码图片完全加载后再绘制
-      const qrImg = await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = (e) => reject(new Error('二维码图片加载失败'));
-        img.src = qrDataUrl;
-      });
-      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-      qrOk = true;
-    } catch (err) {
-      console.error('二维码绘制报错:', err);
-    }
-  } else {
-    console.error('二维码库 QRCode 未加载，请检查网络或 CDN 链接');
-  }
-
-  // 如果二维码失败，绘制一个带提示的灰色方块
-  if (!qrOk) {
-    ctx.fillStyle = '#f5f5f5'; ctx.fillRect(qrX, qrY, qrSize, qrSize);
-    ctx.fillStyle = '#90a4ae';
-    ctx.font = '20px "PingFang SC", "Microsoft YaHei", sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('扫码查看', qrX + qrSize / 2, qrY + qrSize / 2);
-    ctx.fillText('详情', qrX + qrSize / 2, qrY + qrSize / 2 + 24);
-  }
-
-  // 8. 绘制左侧文字信息
-  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  ctx.fillStyle = '#0d47a1';
-  ctx.font = 'bold 34px "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText('云和·蓝天救援队', 40, qrY);
-  
-  ctx.fillStyle = '#78909c';
-  ctx.font = '24px "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText('同在蓝天下 携手为公益', 40, qrY + 50);
-  
-  ctx.fillStyle = '#e53935';
-  ctx.font = 'bold 28px "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText('400-600-9958', 40, qrY + 96);
-
-  return canvas.toDataURL('image/jpeg', 0.92);
+  if (line) ctx.fillText(line, x, curY);
+  return curY;
 }
 
-window.shareTaskToWeChat = async (taskId) => {
-  const t = globalAllTasks.find(x => String(x.id) === String(taskId));
-  if (!t) return;
-  currentPosterTaskId = t.id;
-  document.getElementById('posterModal').style.display = 'flex';
-  document.getElementById('posterLoading').style.display = 'block';
-  document.getElementById('posterLoading').textContent = '海报生成中...';
-  document.getElementById('posterResult').style.display = 'none';
-  try {
-    const dataUrl = await buildTaskPoster(t);
-    document.getElementById('posterImg').src = dataUrl;
-    document.getElementById('posterLoading').style.display = 'none';
-    document.getElementById('posterResult').style.display = 'block';
-  } catch (e) {
-    document.getElementById('posterLoading').textContent = '海报生成失败：' + (e.message || '未知错误');
-  }
-};
-window.closePoster = () => document.getElementById('posterModal').style.display = 'none';
 window.downloadPoster = () => {
-  const img = document.getElementById('posterImg');
-  if (!img || !img.src) return;
-  const a = document.createElement('a');
-  a.href = img.src;
-  a.download = `活动海报_${Date.now()}.jpg`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  if (!window._currentPosterDataUrl) return;
+  const link = document.createElement('a');
+  link.download = `活动_${Date.now()}.png`;
+  link.href = window._currentPosterDataUrl;
+  link.click();
+};
+window.closePoster = () => {
+  document.getElementById('posterModal').style.display = 'none';
+  window._currentPosterDataUrl = null;
 };
 window.copyTaskShareLink = () => {
   if (!currentPosterTaskId) return;
-  const t = globalAllTasks.find(x => String(x.id) === String(currentPosterTaskId));
-  if (!t) return;
-  const url = getTaskShareUrl(t.id);
-  const text = `【云和·蓝天救援队】${t.title}\n时间：${formatTime(t.task_time)}\n详情请点击：${url}`;
-  copyToClipboard(text);
-  alert('活动链接与文案已复制！');
+  const link = getTaskShareUrl(currentPosterTaskId);
+  copyToClipboard(link);
+  alert('链接已复制');
 };
 
-/* ============ 招募分享 ============ */
-function generateShareText(r, signups) {
-  const siteUrl = window.location.href.split('?')[0];
-  let text = `【云和·蓝天救援队 任务招募】\n\n`;
-  text += `[类型] ${r.event_type || '待定'}\n`;
-  text += `[着装] ${r.uniform_type || '无特殊要求'}\n`;
-  text += `[任务] ${r.title}\n`;
-  text += `[时间] ${formatTime(r.task_time)}\n`;
-  text += `[地点] ${r.location || '待定'}\n`;
-  if (r.content) text += `[详情] ${r.content}\n`;
-  text += `\n[报名] 已有 ${signups.length} 人报名：\n`;
-  text += signups.length > 0 ? signups.map(s => s.member_name).join('、') + '\n' : `（暂无，快来抢沙发！）\n`;
-  text += `\n请点击下方链接，打开网页输入真实姓名进行接龙报名：\n${siteUrl}\n\n`;
-  text += `（请大家积极报名，注意安全！）`;
-  return text;
-}
+/* ============ 图表 & 统计 ============ */
+function processTasksData(tasks) {
+  const stats = {};
+  (tasks || []).forEach(t => {
+    const push = (name, h) => {
+      if (!stats[name]) stats[name] = { name, total: 0, rescue: 0, training: 0, fire: 0, events: [] };
+      stats[name].total += h;
+      if (t.event_type === '公益救援') stats[name].rescue += h;
+      else if (t.event_type === '技能培训') stats[name].training += h;
+      else if (t.event_type === '森林消防') stats[name].fire += h;
+      stats[name].events.push({ title: t.title, time: t.task_time, hours: h, type: t.event_type });
+    };
 
-window.handleSignup = async (id) => {
-  const input = document.getElementById(`signupName_${id}`);
-  const name = input.value.replace(/[\s\u3000]+/g, '');
-  if (!name) { alert('请输入姓名'); return; }
-  if (!globalAllMembers.some(m => m.name === name)) {
-    alert('报名失败：你不是本队队员（或入队申请暂未通过审核）。'); return;
-  }
-  const r = recruitsResData.find(x => x.id === id);
-  let signups = (signupsResData || []).filter(s => s.recruitment_id === id);
-  if (signups.some(s => s.member_name === name)) { alert('你已经报过名啦！'); return; }
-  const { error } = await supabase.from('recruitment_signups').insert({ recruitment_id: id, member_name: name });
-  if (error) alert('报名失败：' + error.message);
-  else {
-    signups.push({ member_name: name });
-    const shareText = generateShareText(r, signups);
-    copyToClipboard(shareText);
-    document.getElementById('shareTextArea').value = shareText;
-    document.getElementById('shareModal').style.display = 'flex';
-  }
-};
-window.handleQuit = async (id) => {
-  const input = document.getElementById(`signupName_${id}`);
-  const name = input.value.replace(/[\s\u3000]+/g, '');
-  if (!name) { alert('请输入姓名以退出'); return; }
-  const { data: existing } = await supabase.from('recruitment_signups').select('*').eq('recruitment_id', id).eq('member_name', name);
-  if (!existing || existing.length === 0) { alert('未找到你的报名记录'); return; }
-  if (!confirm(`确定退出【${name}】的接龙吗？`)) return;
-  const { error } = await supabase.from('recruitment_signups').delete().eq('recruitment_id', id).eq('member_name', name);
-  if (error) alert('退出失败：' + error.message);
-  else { alert('已成功退出'); location.reload(); }
-};
-window.handleShare = (id) => {
-  const r = recruitsResData.find(x => x.id === id);
-  const signups = (signupsResData || []).filter(s => s.recruitment_id === id);
-  copyToClipboard(generateShareText(r, signups));
-  alert('招募文案已复制！\n\n请打开微信群，直接粘贴发送即可。');
-};
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text).catch(() => {
-    const t = document.createElement('textarea');
-    t.value = text; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+    if (Array.isArray(t.member_hours) && t.member_hours.length > 0) {
+      t.member_hours.forEach(m => push(m.name, parseFloat(m.hours) || 0));
+    } else if (t.members && t.duration) {
+      const names = t.members.split(',').map(s => s.trim()).filter(Boolean);
+      const h = parseFloat(t.duration) || 0;
+      names.forEach(n => push(n, h));
+    }
   });
+  globalMemberStats = stats;
 }
-window.copyShareTextAgain = () => { copyToClipboard(document.getElementById('shareTextArea').value); alert('已重新复制！'); };
-window.closeShareModal = () => location.reload();
 
-/* ============ 个人查询 ============ */
-window.doQuery = () => {
-  const name = document.getElementById('queryNameInput').value.trim();
-  const res = document.getElementById('queryResult');
-  if (!name) { alert('请输入姓名'); return; }
-  const data = globalMemberStats[name];
-  if (!data) { res.innerHTML = `<span style="color:#e53935;">未找到“${esc(name)}”的记录</span>`; return; }
-  const fmt = (num) => parseFloat(num.toFixed(1));
-  res.innerHTML = `
-    <div style="background:#f4f7fb; padding:15px; border-radius:8px;">
-      <p style="margin:0 0 10px; font-weight:400;">${esc(name)} 的出勤报告</p>
-      <p style="margin:5px 0;">总时长：<strong style="color:#1565c0; font-size:18px; font-weight:400;">${fmt(data.total)}</strong> 小时</p>
-      <p style="margin:5px 0; font-size:13px; color:#666; font-weight:300;">公益救援：${fmt(data.rescue)}h | 技能培训：${fmt(data.training)}h | 森林消防：${fmt(data.fire)}h</p>
-    </div>`;
-};
-
-/* ============ 队员登录 / 首次改密 / 个人中心 ============ */
-window.openMe = () => {
-  renderMe();
-  openModal('modal-me');
-};
-
-window.handleMeClose = () => {
-  if (pendingFirstLogin) {
-    if (!confirm('首次登录需要修改密码，确定退出登录吗？')) return;
-    currentMember = null;
-    sessionStorage.removeItem('member_name');
-    pendingFirstLogin = false;
-    pendingOldPassword = '';
-    renderMe();
+window.toggleChart = () => {
+  const sec = document.getElementById('chart-section');
+  if (sec.style.display === 'block') {
+    sec.style.display = 'none';
+  } else {
+    sec.style.display = 'block';
+    renderStats();
+    setTimeout(() => {
+      if (barChartInstance) barChartInstance.resize();
+      if (pieChartInstance) pieChartInstance.resize();
+    }, 60);
   }
-  closeModal('modal-me');
+};
+
+function renderStats() {
+  const entries = Object.values(globalMemberStats).sort((a, b) => b.total - a.total);
+
+  const barEl = document.getElementById('barChart');
+  const pieEl = document.getElementById('pieChart');
+  if (!barEl || !pieEl) return;
+
+  const top10 = entries.slice(0, 10);
+
+  if (!barChartInstance) barChartInstance = echarts.init(barEl);
+  barChartInstance.setOption({
+    title: { text: '出勤时长 TOP 10', left: 'center', textStyle: { fontSize: 14, fontWeight: 400 } },
+    tooltip: {},
+    xAxis: {
+      type: 'category',
+      data: top10.map(e => e.name),
+      axisLabel: { interval: 0, rotate: 30, fontSize: 10 }
+    },
+    yAxis: { type: 'value', name: '小时' },
+    grid: { top: 40, bottom: 60, left: 40, right: 20 },
+    series: [{ type: 'bar', data: top10.map(e => Number(e.total.toFixed(1))), itemStyle: { color: '#1565c0' } }]
+  });
+
+  const totalRescue = entries.reduce((s, e) => s + e.rescue, 0);
+  const totalTraining = entries.reduce((s, e) => s + e.training, 0);
+  const totalFire = entries.reduce((s, e) => s + e.fire, 0);
+
+  if (!pieChartInstance) pieChartInstance = echarts.init(pieEl);
+  pieChartInstance.setOption({
+    title: { text: '任务类型时长占比', left: 'center', textStyle: { fontSize: 14, fontWeight: 400 } },
+    tooltip: { trigger: 'item' },
+    legend: { bottom: 0 },
+    series: [{
+      type: 'pie',
+      radius: ['40%', '65%'],
+      center: ['50%', '48%'],
+      label: { show: false },
+      data: [
+        { name: '公益救援', value: Number(totalRescue.toFixed(1)), itemStyle: { color: '#1565c0' } },
+        { name: '技能培训', value: Number(totalTraining.toFixed(1)), itemStyle: { color: '#2e7d32' } },
+        { name: '森林消防', value: Number(totalFire.toFixed(1)), itemStyle: { color: '#c62828' } }
+      ]
+    }]
+  });
+
+  const tableBox = document.getElementById('statsTableBox');
+  if (!tableBox) return;
+  if (entries.length === 0) {
+    tableBox.innerHTML = '<p style="text-align:center;padding:20px;color:#999;font-weight:300;">暂无出勤数据</p>';
+    return;
+  }
+  tableBox.innerHTML = `
+    <table class="stats-table">
+      <thead>
+        <tr><th>排名</th><th>姓名</th><th>总时长</th><th></th></tr>
+      </thead>
+      <tbody>
+        ${entries.map((e, i) => `
+          <tr>
+            <td class="rank ${i < 3 ? 'rank-' + (i+1) : ''}">${i+1}</td>
+            <td>
+              <span class="clickable-name" onclick="toggleMemberDetails('${esc(e.name)}')">
+                ${esc(e.name)} <span class="arrow" id="arrow-${esc(e.name)}">▼</span>
+              </span>
+            </td>
+            <td class="total-col">${e.total.toFixed(1)} h</td>
+            <td></td>
+          </tr>
+          <tr class="details-row" id="details-${esc(e.name)}" style="display:none;">
+            <td colspan="4">
+              <div class="details-flex">
+                <span class="detail-badge rescue">救援 ${e.rescue.toFixed(1)}h</span>
+                <span class="detail-badge training">培训 ${e.training.toFixed(1)}h</span>
+                <span class="detail-badge fire">消防 ${e.fire.toFixed(1)}h</span>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+window.toggleMemberDetails = (name) => {
+  const row = document.getElementById('details-' + name);
+  const arrow = document.getElementById('arrow-' + name);
+  if (!row) return;
+  const open = row.style.display === 'table-row';
+  row.style.display = open ? 'none' : 'table-row';
+  if (arrow) arrow.classList.toggle('open', !open);
+};
+
+/* ============ 查询 ============ */
+window.doQuery = () => {
+  const name = (document.getElementById('queryNameInput').value || '').trim();
+  const resultEl = document.getElementById('queryResult');
+  if (!name) { alert('请输入姓名'); return; }
+  const stats = globalMemberStats[name];
+  if (!stats) {
+    resultEl.innerHTML = `<p style="text-align:center; color:#999;">未查询到「${esc(name)}」的出勤记录</p>`;
+    return;
+  }
+  resultEl.innerHTML = `
+    <div style="background:#e3f2fd; padding:15px; border-radius:8px; text-align:center;">
+      <div style="font-size:16px; margin-bottom:8px;">${esc(stats.name)}</div>
+      <div style="font-size:24px; color:#1565c0; font-weight:400;">${stats.total.toFixed(1)} <span style="font-size:13px;">小时</span></div>
+      <div style="font-size:12px; color:#546e7a; margin-top:8px;">
+        救援 ${stats.rescue.toFixed(1)}h · 培训 ${stats.training.toFixed(1)}h · 消防 ${stats.fire.toFixed(1)}h
+      </div>
+    </div>
+  `;
+};
+
+/* ============ 通讯录 ============ */
+window.openContact = () => {
+  openModal('modal-contact');
+  const view = document.getElementById('contact-data-view');
+  if (!globalAllMembers || globalAllMembers.length === 0) {
+    view.innerHTML = '<p style="text-align:center; color:#999;">暂无队员信息</p>';
+    return;
+  }
+  view.innerHTML = globalAllMembers.map(m => `
+    <div style="padding:10px; border-bottom:1px dashed #eee;">
+      <div style="font-size:14px; color:#333; font-weight:400;">${esc(m.name)}</div>
+      ${m.phone ? `<div style="font-size:13px; color:#546e7a; margin-top:3px;">电话：${esc(m.phone)}</div>` : ''}
+      ${m.emergency_contact ? `<div style="font-size:12px; color:#90a4ae; margin-top:3px;">紧急联系人：${esc(m.emergency_contact)}</div>` : ''}
+    </div>
+  `).join('');
+};
+
+/* ============ 申请加入 ============ */
+window.submitApply = async () => {
+  const name = (document.getElementById('applyName').value || '').trim();
+  const phone = (document.getElementById('applyPhone').value || '').trim();
+  const emergency = (document.getElementById('applyEmergency').value || '').trim();
+  if (!name) { alert('请填写姓名'); return; }
+  const btn = document.getElementById('applySubmitBtn');
+  btn.disabled = true;
+  const { error } = await supabase.from('members').insert({
+    name, phone, emergency_contact: emergency, status: '待审核'
+  });
+  btn.disabled = false;
+  if (error) { alert('提交失败：' + error.message); return; }
+  document.getElementById('applyName').value = '';
+  document.getElementById('applyPhone').value = '';
+  document.getElementById('applyEmergency').value = '';
+  closeModal('modal-apply');
+  alert('申请已提交，请等待管理员审核。');
+};
+
+/* ============ 我的 / 队员登录 ============ */
+window.openMe = () => {
+  openModal('modal-me');
+  if (currentMember) {
+    renderMeProfile();
+  } else {
+    document.getElementById('meLoginView').style.display = 'block';
+    document.getElementById('meChangePwdView').style.display = 'none';
+    document.getElementById('meProfileView').style.display = 'none';
+    document.getElementById('meTitle').textContent = '我的';
+  }
 };
 
 window.memberLogin = async () => {
-  const name = document.getElementById('meName').value.trim();
-  const pwd = document.getElementById('mePwd').value.trim();
-  if (!name) { alert('请输入姓名'); return; }
-  if (!pwd) { alert('请输入密码'); return; }
+  const name = (document.getElementById('meName').value || '').trim();
+  const pwd = (document.getElementById('mePwd').value || '').trim();
+  if (!name || !pwd) { alert('请输入姓名和密码'); return; }
 
   const btn = document.getElementById('meLoginBtn');
-  btn.disabled = true; btn.textContent = '登录中...';
+  btn.disabled = true;
+  btn.textContent = '登录中...';
 
-  const { data, error } = await supabase.rpc('verify_member_login', {
-    p_name: name,
-    p_password: pwd
-  });
+  const { data, error } = await supabase.from('members').select('*').eq('name', name).eq('status', '在队').maybeSingle();
+  btn.disabled = false;
+  btn.textContent = '登 录';
 
-  btn.disabled = false; btn.textContent = '登 录';
+  if (error) { alert('登录失败：' + error.message); return; }
+  if (!data) { alert('未找到该队员，请联系管理员'); return; }
+  if ((data.password || '0000') !== pwd) { alert('密码错误'); return; }
 
-  if (error) {
-    alert('登录失败：' + error.message);
-    return;
-  }
+  currentMember = { id: String(data.id), name: data.name };
+  sessionStorage.setItem('member_name', data.name);
 
-  const row = Array.isArray(data) ? data[0] : null;
-  if (!row) { alert('姓名或密码错误，或该队员尚未通过审核'); return; }
-
-  currentMember = { id: String(row.id), name: row.name };
-  sessionStorage.setItem('member_name', row.name);
+  document.getElementById('meName').value = '';
   document.getElementById('mePwd').value = '';
 
-  if (!row.pwd_changed) {
+  if (!data.pwd_changed) {
     pendingFirstLogin = true;
-    pendingOldPassword = pwd;    
-    showChangePwdView();
+    pendingOldPassword = pwd;
+    document.getElementById('meLoginView').style.display = 'none';
+    document.getElementById('meProfileView').style.display = 'none';
+    document.getElementById('meChangePwdView').style.display = 'block';
+    document.getElementById('meTitle').textContent = '设置新密码';
+    document.getElementById('cpError').style.display = 'none';
+    document.getElementById('cpNewPwd').value = '';
+    document.getElementById('cpConfirmPwd').value = '';
   } else {
-    pendingFirstLogin = false;
-    pendingOldPassword = '';
-    renderMe();
+    renderMeProfile();
   }
 };
 
-function showChangePwdView() {
+function renderMeProfile() {
+  if (!currentMember) return;
   document.getElementById('meLoginView').style.display = 'none';
-  document.getElementById('meProfileView').style.display = 'none';
-  document.getElementById('meChangePwdView').style.display = 'block';
-  document.getElementById('meTitle').textContent = '首次登录 · 修改密码';
-  document.getElementById('cpNewPwd').value = '';
-  document.getElementById('cpConfirmPwd').value = '';
-  document.getElementById('cpError').style.display = 'none';
+  document.getElementById('meChangePwdView').style.display = 'none';
+  document.getElementById('meProfileView').style.display = 'block';
+  document.getElementById('meTitle').textContent = '我的';
+
+  const stats = globalMemberStats[currentMember.name] || { total: 0, rescue: 0, training: 0, fire: 0, events: [] };
+  const events = [...stats.events].sort((a, b) => new Date(b.time) - new Date(a.time));
+  const eventsHtml = events.length > 0
+    ? events.map(ev => `
+        <div class="me-event">
+          <div class="me-event-title">${esc(ev.title || '活动')}</div>
+          <div class="me-event-meta">${formatTime(ev.time)} · ${esc(String(ev.hours))}h${ev.type ? ' · ' + esc(ev.type) : ''}</div>
+        </div>`).join('')
+    : '<div class="me-empty">暂无出勤记录</div>';
+
+  document.getElementById('meProfileView').innerHTML = `
+    <div class="me-summary">
+      <div class="me-name">${esc(currentMember.name)}</div>
+      <div class="me-total">${stats.total.toFixed(1)}<small> 小时</small></div>
+      <div class="me-cats">
+        <span>救援 ${stats.rescue.toFixed(1)}h</span>
+        <span>培训 ${stats.training.toFixed(1)}h</span>
+        <span>消防 ${stats.fire.toFixed(1)}h</span>
+      </div>
+    </div>
+    <div class="me-section-title">参与事件（${events.length}）</div>
+    ${eventsHtml}
+    <button class="btn-block me-change-pwd" onclick="openChangePwd()">修改密码</button>
+    <button class="btn-block me-logout" onclick="memberLogout()">退出登录</button>
+  `;
 }
 
-window.submitChangePwd = async () => {
-  const np = document.getElementById('cpNewPwd').value.trim();
-  const cp = document.getElementById('cpConfirmPwd').value.trim();
-  const errEl = document.getElementById('cpError');
-  const showErr = (msg) => { errEl.textContent = msg; errEl.style.display = 'block'; };
-  errEl.style.display = 'none';
+window.openChangePwd = () => {
+  document.getElementById('meProfileView').style.display = 'none';
+  document.getElementById('meLoginView').style.display = 'none';
+  document.getElementById('meChangePwdView').style.display = 'block';
+  document.getElementById('meTitle').textContent = '修改密码';
+  pendingFirstLogin = false;
+  document.getElementById('cpError').style.display = 'none';
+  document.getElementById('cpNewPwd').value = '';
+  document.getElementById('cpConfirmPwd').value = '';
+};
 
-  if (!np || np.length < 4) return showErr('新密码不少于 4 位');
-  if (np !== cp) return showErr('两次输入的密码不一致');
-  if (np === '0000') return showErr('新密码不能与初始密码相同');
-  if (!currentMember) return showErr('登录状态已失效，请重新登录');
-  if (!pendingOldPassword) return showErr('会话已过期，请退出后重新登录');
+window.submitChangePwd = async () => {
+  const newPwd = (document.getElementById('cpNewPwd').value || '').trim();
+  const confirmPwd = (document.getElementById('cpConfirmPwd').value || '').trim();
+  const errEl = document.getElementById('cpError');
+
+  if (!newPwd || newPwd.length < 4) { errEl.textContent = '密码不少于 4 位'; errEl.style.display = 'block'; return; }
+  if (newPwd !== confirmPwd) { errEl.textContent = '两次密码不一致'; errEl.style.display = 'block'; return; }
+  if (!currentMember) { errEl.textContent = '会话已失效，请重新登录'; errEl.style.display = 'block'; return; }
 
   const btn = document.getElementById('cpSubmitBtn');
-  btn.disabled = true; btn.textContent = '保存中...';
+  btn.disabled = true;
+  btn.textContent = '保存中...';
 
-  const { data, error } = await supabase.rpc('set_member_password', {
-    p_id: currentMember.id,
-    p_old_password: pendingOldPassword,
-    p_new_password: np
-  });
+  const { error } = await supabase.from('members')
+    .update({ password: newPwd, pwd_changed: true })
+    .eq('id', currentMember.id);
 
-  btn.disabled = false; btn.textContent = '保存新密码';
+  btn.disabled = false;
+  btn.textContent = '保存新密码';
 
   if (error) {
-    showErr('保存失败：' + error.message);
-    return;
-  }
-  if (!data) {
-    showErr('旧密码校验失败或新密码不合法，请退出后重新登录');
+    errEl.textContent = '保存失败：' + error.message + '\n如提示 pwd_changed 字段不存在，请先执行升级 SQL。';
+    errEl.style.display = 'block';
     return;
   }
 
+  errEl.style.display = 'none';
   pendingFirstLogin = false;
   pendingOldPassword = '';
-  document.getElementById('meChangePwdView').style.display = 'none';
-  renderMe();
-  alert('密码修改成功，请牢记新密码。');
+  renderMeProfile();
+  alert('密码已保存');
 };
 
 window.cancelChangePwd = () => {
-  if (!confirm('取消修改将退出登录，确定吗？')) return;
   currentMember = null;
   sessionStorage.removeItem('member_name');
   pendingFirstLogin = false;
   pendingOldPassword = '';
-  renderMe();
-};
-
-window.changePwdFromProfile = async () => {
-  if (!currentMember) return;
-  const oldPwd = prompt('请输入当前密码：');
-  if (!oldPwd) return;
-
-  const np = prompt('请输入新密码（不少于 4 位）：');
-  if (!np || np.length < 4) { alert('新密码不少于 4 位'); return; }
-
-  const cp = prompt('再次输入新密码：');
-  if (np !== cp) { alert('两次输入的密码不一致'); return; }
-
-  const { data, error } = await supabase.rpc('set_member_password', {
-    p_id: currentMember.id,
-    p_old_password: oldPwd,
-    p_new_password: np
-  });
-
-  if (error) { alert('修改失败：' + error.message); return; }
-  if (!data) { alert('当前密码不正确'); return; }
-  alert('密码修改成功');
+  document.getElementById('meChangePwdView').style.display = 'none';
+  document.getElementById('meLoginView').style.display = 'block';
+  document.getElementById('meTitle').textContent = '我的';
 };
 
 window.memberLogout = () => {
   currentMember = null;
   sessionStorage.removeItem('member_name');
-  pendingFirstLogin = false;
-  pendingOldPassword = '';
-  renderMe();
+  closeModal('modal-me');
 };
 
-function renderMe() {
-  const loginView = document.getElementById('meLoginView');
-  const profileView = document.getElementById('meProfileView');
-  const changePwdView = document.getElementById('meChangePwdView');
-  if (!loginView || !profileView || !changePwdView) return;
-
-  document.getElementById('meTitle').textContent = '我的';
-
+window.handleMeClose = () => {
   if (pendingFirstLogin) {
-    loginView.style.display = 'none';
-    profileView.style.display = 'none';
-    changePwdView.style.display = 'block';
-    return;
+    currentMember = null;
+    sessionStorage.removeItem('member_name');
+    pendingFirstLogin = false;
+    pendingOldPassword = '';
+    document.getElementById('meChangePwdView').style.display = 'none';
+    document.getElementById('meLoginView').style.display = 'block';
+    document.getElementById('meTitle').textContent = '我的';
   }
-
-  if (!currentMember) {
-    loginView.style.display = 'block';
-    profileView.style.display = 'none';
-    changePwdView.style.display = 'none';
-    return;
-  }
-
-  loginView.style.display = 'none';
-  changePwdView.style.display = 'none';
-  profileView.style.display = 'block';
-
-  const name = currentMember.name;
-  const stat = globalMemberStats[name] || { total: 0, rescue: 0, training: 0, fire: 0 };
-  const fmt = n => parseFloat((n || 0).toFixed(1));
-
-  const myTasks = globalAllTasks.filter(t => {
-    const mh = Array.isArray(t.member_hours) ? t.member_hours : [];
-    if (mh.length) return mh.some(m => m.name === name);
-    return (t.members || '').split(',').map(s => s.trim()).includes(name);
-  });
-  const myHours = (t) => {
-    const mh = Array.isArray(t.member_hours) ? t.member_hours : [];
-    const found = mh.find(m => m.name === name);
-    return found ? (parseFloat(found.hours) || 0) : (parseFloat(t.duration) || 0);
-  };
-
-  profileView.innerHTML = `
-    <div class="me-summary">
-      <div class="me-name">${esc(name)}</div>
-      <div class="me-total">${fmt(stat.total)}<small> 小时</small></div>
-      <div class="me-cats">
-        <span>公益救援 ${fmt(stat.rescue)}h</span>
-        <span>技能培训 ${fmt(stat.training)}h</span>
-        <span>森林消防 ${fmt(stat.fire)}h</span>
-      </div>
-    </div>
-
-    <div class="me-section-title">我参与的事件 (${myTasks.length})</div>
-    ${myTasks.length ? myTasks.map(t => `
-      <div class="me-event" onclick="closeModal('modal-me');openTaskDetail('${t.id}')">
-        <div class="me-event-title">${esc(t.title)}</div>
-        <div class="me-event-meta">${formatTime(t.task_time)} · ${esc(t.event_type) || '无'} · 我的时长 ${myHours(t)}h</div>
-      </div>
-    `).join('') : '<div class="me-empty">暂无参与记录</div>'}
-
-    <button class="btn-block me-change-pwd" onclick="changePwdFromProfile()">修改密码</button>
-    <button class="btn-block me-logout" onclick="memberLogout()">退出登录</button>
-  `;
-}
-
-/* ============ 通讯录 ============ */
-window.openContact = () => {
-  if (!currentMember) {
-    alert('通讯录仅对已登录队员开放，请先登录');
-    openMe();
-    return;
-  }
-  renderContactView();
-  openModal('modal-contact');
+  closeModal('modal-me');
 };
 
-function renderContactView() {
-  const view = document.getElementById('contact-data-view');
-  let html = '<p style="font-size:12px; color:#90a4ae; margin:0 0 10px; font-weight:300;">仅登录队员可见，请勿外传。</p>';
-  html += '<table style="width:100%; border-collapse:collapse; font-size:13px; font-weight:300;">';
-  html += '<tr style="background:#f4f7fb; text-align:left; font-weight:400;"><th style="padding:8px;">姓名</th><th>电话</th></tr>';
-  globalAllMembers.forEach(m => {
-    const phone = m.phone || '';
-    html += `<tr>
-      <td style="padding:8px; border-bottom:1px solid #eee;">${esc(m.name)}</td>
-      <td style="border-bottom:1px solid #eee;">${phone ? `<a href="tel:${esc(phone)}" style="color:#1565c0; text-decoration:none;">${esc(phone)}</a>` : '<span style="color:#b0bec5;">-</span>'}</td>
-    </tr>`;
-  });
-  html += '</table>';
-  view.innerHTML = html;
-}
+/* ============ 发起任务（队员投稿 → 待审核） ============ */
+window.openCreateTask = () => {
+  const nameEl = document.getElementById('ctCreator');
+  if (nameEl) nameEl.value = currentMember ? currentMember.name : '';
+  openModal('modal-create-task');
+};
 
-/* ============ 入队申请 ============ */
-window.submitApply = async () => {
-  const btn = document.getElementById('applySubmitBtn');
-  const name = document.getElementById('applyName').value.trim();
-  if (!name) { alert('请输入姓名'); return; }
-  btn.disabled = true; btn.textContent = '提交中...';
+window.submitCreateTask = async () => {
+  const creator = (document.getElementById('ctCreator').value || '').trim();
+  const title = (document.getElementById('ctTitle').value || '').trim();
+  const location = (document.getElementById('ctLocation').value || '').trim();
+  const timeVal = document.getElementById('ctTime').value;
+  const content = (document.getElementById('ctContent').value || '').trim();
+  const typeEl = document.querySelector('input[name="ct_type"]:checked');
+  const uniformStr = Array.from(document.querySelectorAll('input[name="ct_uniform"]:checked'))
+    .map(e => e.value).join(', ');
+
+  if (!creator) { alert('请填写你的真实姓名'); return; }
+  if (!globalAllMembers.some(m => m.name === creator)) {
+    alert('未在「在队队员名单」中找到该姓名，请联系管理员确认后再提交。');
+    return;
+  }
+  if (!title) { alert('请填写任务标题'); return; }
+
+  const btn = document.getElementById('ctSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = '提交中...';
+
   const payload = {
-    name,
-    phone: document.getElementById('applyPhone').value.trim(),
-    emergency_contact: document.getElementById('applyEmergency').value.trim(),
-    status: '待审核',
-    password: '0000',
-    pwd_changed: false
+    title,
+    event_type: typeEl ? typeEl.value : '公益救援',
+    uniform_type: uniformStr || null,
+    location,
+    task_time: timeVal ? new Date(timeVal).toISOString() : null,
+    content: `【发起人：${creator}】\n${content}`,
+    status: '待审核'
   };
-  const { error } = await supabase.from('members').insert(payload);
-  btn.disabled = false; btn.textContent = '提交申请';
-  if (error) alert('提交失败：' + error.message);
-  else {
-    alert('提交成功！请等待管理员审核。审核通过后可用姓名 + 初始密码 0000 登录，登录后需修改密码。');
-    closeModal('modal-apply');
-  }
-};
 
-/* ============ 出勤榜单 ============ */
-window.toggleChart = () => {
-  const chartDiv = document.getElementById('chart-section');
-  if (chartDiv.style.display === 'block') { chartDiv.style.display = 'none'; return; }
-  chartDiv.style.display = 'block';
-  if (Object.keys(globalMemberStats).length > 0) {
-    const sorted = Object.entries(globalMemberStats).sort((a, b) => b[1].total - a[1].total);
-    const top10 = sorted.slice(0, 10);
-    const barChart = echarts.init(document.getElementById('barChart'));
-    barChart.setOption({
-      title: { text: '出勤前十名', left: 'center', textStyle:{fontSize:14,color:'#666',fontWeight:300} },
-      tooltip: { trigger: 'axis' },
-      grid: { left: '10%', right: '5%', bottom: '10%', top: '20%' },
-      xAxis: { type: 'category', data: top10.map(x => x[0]), axisLabel:{color:'#999', fontSize:10, fontWeight:300} },
-      yAxis: { type: 'value', splitLine:{lineStyle:{type:'dashed'}}, axisLabel:{fontWeight:300} },
-      series: [{ data: top10.map(x => x[1].total), type: 'bar', itemStyle: { color: '#42a5f5', borderRadius: [4,4,0,0] }, barMaxWidth: 20 }]
-    });
-    let tr=0, tt=0, tf=0;
-    Object.values(globalMemberStats).forEach(d => { tr+=d.rescue; tt+=d.training; tf+=d.fire; });
-    const pieChart = echarts.init(document.getElementById('pieChart'));
-    pieChart.setOption({
-      title: { text: '任务类型占比', left: 'center', textStyle:{fontSize:14,color:'#666',fontWeight:300} },
-      tooltip: { trigger: 'item' },
-      legend: { bottom: 0, icon: 'circle', textStyle:{fontSize:11, fontWeight:300} },
-      color: ['#42a5f5', '#66bb6a', '#ef5350'],
-      series: [{ type: 'pie', radius: ['40%', '65%'], label:{show:false}, data: [
-        {value: tr, name: '公益救援'}, {value: tt, name: '技能培训'}, {value: tf, name: '森林消防'}
-      ]}]
-    });
-    window.addEventListener('resize', () => { barChart.resize(); pieChart.resize(); });
-    renderStatsTable(top10);
-  }
-};
+  const { error } = await supabase.from('recruitments').insert(payload);
 
-function renderStatsTable(top10) {
-  const statsBox = document.getElementById('statsTableBox');
-  const fmt = (num) => parseFloat(num.toFixed(1));
-  statsBox.innerHTML = `
-    <table class="stats-table">
-      <thead><tr><th class="rank">排名</th><th>队员姓名</th><th>总时长</th></tr></thead>
-      <tbody>
-        ${top10.map((item, index) => {
-          const name = item[0], data = item[1];
-          let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
-          let detailsHtml = '';
-          if (data.rescue > 0) detailsHtml += `<span class="detail-badge rescue">公益救援：${fmt(data.rescue)}h</span>`;
-          if (data.training > 0) detailsHtml += `<span class="detail-badge training">技能培训：${fmt(data.training)}h</span>`;
-          if (data.fire > 0) detailsHtml += `<span class="detail-badge fire">森林消防：${fmt(data.fire)}h</span>`;
-          if (detailsHtml === '') detailsHtml = '<span class="detail-badge">暂无分类明细</span>';
-          return `
-            <tr>
-              <td class="rank ${rankClass}">${index + 1}</td>
-              <td><span class="clickable-name" onclick="toggleDetail('detail-${index}', this)">${esc(name)} <span class="arrow">▼</span></span></td>
-              <td class="total-col">${fmt(data.total)} 小时</td>
-            </tr>
-            <tr id="detail-${index}" class="details-row" style="display: none;"><td colspan="3"><div class="details-flex">${detailsHtml}</div></td></tr>`;
-        }).join('')}
-      </tbody>
-    </table>`;
-}
-window.toggleDetail = (detailId, nameElement) => {
-  const detailRow = document.getElementById(detailId);
-  const arrow = nameElement.querySelector('.arrow');
-  if (detailRow.style.display === 'none') { detailRow.style.display = 'table-row'; arrow.classList.add('open'); }
-  else { detailRow.style.display = 'none'; arrow.classList.remove('open'); }
-};
+  btn.disabled = false;
+  btn.textContent = '提交审核';
 
-window.scrollToHistory = () => document.getElementById('history-section').scrollIntoView({ behavior: 'smooth' });
-window.openModal = (id) => { document.getElementById(id).style.display = 'flex'; };
-window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
+  if (error) { alert('提交失败：' + error.message); return; }
 
-/* ============ 统计 ============ */
-function processTasksData(tasks) {
-  globalMemberStats = {};
-  tasks.forEach(t => {
-    const type = t.event_type || '';
-    if (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0) {
-      t.member_hours.forEach(m => {
-        const hours = parseFloat(m.hours) || 0;
-        const isCurrentMember = globalAllMembers.some(member => member.name === m.name);
-        if (hours > 0 && m.name && isCurrentMember) {
-          if (!globalMemberStats[m.name]) globalMemberStats[m.name] = { rescue: 0, training: 0, fire: 0, total: 0 };
-          globalMemberStats[m.name].total += hours;
-          if (type === '公益救援') globalMemberStats[m.name].rescue += hours;
-          else if (type === '技能培训') globalMemberStats[m.name].training += hours;
-          else if (type === '森林消防') globalMemberStats[m.name].fire += hours;
-        }
-      });
-    }
+  ['ctTitle', 'ctLocation', 'ctTime', 'ctContent'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
   });
-}
+  document.querySelectorAll('input[name="ct_uniform"]').forEach(c => c.checked = false);
+  closeModal('modal-create-task');
+  alert('提交成功！管理员审核通过后，你的招募令会出现在首页。');
+};
 
-function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function formatTime(t) { if (!t) return '待定'; const d = new Date(t); if (isNaN(d)) return t; const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+/* ============ 滚动到历史 ============ */
+window.scrollToHistory = () => {
+  const el = document.getElementById('history-section');
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 </script>
 </body>
 </html>
