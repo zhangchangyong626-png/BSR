@@ -450,9 +450,9 @@ let globalAllTasks = [];
 let globalAllMembers = [];
 let recruitsResData = null;
 let signupsResData = null;
-let currentMember = null;          // { id, name }
-let pendingFirstLogin = false;     // 首次登录待改密
-let pendingOldPassword = '';       // 首次登录时暂存输入的初始密码
+let currentMember = null;          
+let pendingFirstLogin = false;     
+let pendingOldPassword = '';       
 let currentTypeFilter = 'all';
 let currentPosterTaskId = null;
 
@@ -460,7 +460,6 @@ const { data: { session } } = await supabase.auth.getSession();
 
 const [tasksRes, membersRes, recruitsRes, signupsRes, settingsRes] = await Promise.all([
   supabase.from('tasks').select('*').order('task_time', { ascending: false }),
-  // 不 select password，避免密码被前端拿到
   supabase.from('members').select('id,name,phone,status,emergency_contact,pwd_changed').eq('status', '在队').order('name'),
   supabase.from('recruitments').select('*').eq('status', '招募中').order('created_at', { ascending: false }),
   supabase.from('recruitment_signups').select('*'),
@@ -473,9 +472,7 @@ recruitsResData = recruitsRes.data || [];
 signupsResData = signupsRes.data || [];
 const allSettings = settingsRes.data || [];
 
-if (membersRes.error) {
-  console.warn('members 查询出错：', membersRes.error.message);
-}
+if (membersRes.error) console.warn('members 查询出错：', membersRes.error.message);
 
 const savedMemberName = sessionStorage.getItem('member_name');
 if (savedMemberName && globalAllMembers.some(m => m.name === savedMemberName)) {
@@ -835,6 +832,7 @@ async function buildTaskPoster(t) {
 
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
 
+  // 1. 绘制首图
   const photoH = 560;
   const photos = getPhotos(t);
   let imgOk = false;
@@ -843,7 +841,9 @@ async function buildTaskPoster(t) {
       const img = await loadImage(photos[0]);
       drawImageCover(ctx, img, 0, 0, W, photoH);
       imgOk = true;
-    } catch {}
+    } catch (err) {
+      console.warn('首图加载失败，使用默认背景', err);
+    }
   }
   if (!imgOk) {
     const grad = ctx.createLinearGradient(0, 0, W, photoH);
@@ -858,6 +858,7 @@ async function buildTaskPoster(t) {
     ctx.fillText('蓝天救援', W / 2, photoH / 2 + 20);
   }
 
+  // 2. 绘制左上角类型标签
   if (t.event_type) {
     ctx.font = '500 28px "PingFang SC", "Microsoft YaHei", sans-serif';
     const tw = ctx.measureText(t.event_type).width + 48;
@@ -869,6 +870,7 @@ async function buildTaskPoster(t) {
     ctx.fillText(t.event_type, 30 + tw / 2, 58);
   }
 
+  // 3. 绘制活动标题
   let y = photoH + 50;
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillStyle = '#1f2d3d';
@@ -878,57 +880,88 @@ async function buildTaskPoster(t) {
     y += 56;
   });
 
+  // 4. 绘制时间和时长
   y += 10;
   ctx.font = '28px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillStyle = '#607d8b';
   ctx.fillText(`时间：${formatTime(t.task_time)}`, 40, y); y += 46;
   ctx.fillText(`时长：${(t.duration || '-')} 小时`, 40, y); y += 46;
 
+  // 5. 绘制参与人员（修复：自动换行，不再截断）
   const members = Array.isArray(t.member_hours) && t.member_hours.length
     ? t.member_hours.map(m => m.name).join('、')
     : (t.members || '');
+  
   if (members) {
-    ctx.fillStyle = '#607d8b'; ctx.fillText('队员：', 40, y);
+    ctx.fillStyle = '#607d8b'; 
+    ctx.fillText('队员：', 40, y);
     ctx.fillStyle = '#1565c0';
-    const shown = members.length > 24 ? members.slice(0, 24) + '…' : members;
-    ctx.fillText(shown, 134, y); y += 46;
+    
+    const memberTextX = 134; // "队员：" 之后的起始X坐标
+    const maxTextWidth = W - memberTextX - 40; // 剩余可用宽度
+    // 使用 wrapText 函数自动换行，最多画4行，防止内容过长超出海报
+    const memberLines = wrapText(ctx, members, maxTextWidth, 4); 
+    
+    memberLines.forEach((line, idx) => {
+      ctx.fillText(line, memberTextX, y + idx * 40);
+    });
+    y += (memberLines.length * 40) + 10; // 动态增加Y轴高度
   }
 
+  // 6. 绘制底部品牌区
   const brandY = H - 240;
   ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(40, brandY); ctx.lineTo(W - 40, brandY); ctx.stroke();
 
+  // 7. 绘制二维码（修复：增加容错和延迟加载）
   const qrSize = 160;
   const qrX = W - 40 - qrSize;
   const qrY = H - 40 - qrSize;
   const taskUrl = getTaskShareUrl(t.id);
   let qrOk = false;
+  
   if (typeof QRCode !== 'undefined') {
     try {
       const qrDataUrl = await QRCode.toDataURL(taskUrl, {
         width: 320, margin: 1, errorCorrectionLevel: 'M',
         color: { dark: '#0d47a1', light: '#ffffff' }
       });
-      const qrImg = await loadImage(qrDataUrl, false);
+      // 使用 Promise 确保二维码图片完全加载后再绘制
+      const qrImg = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = (e) => reject(new Error('二维码图片加载失败'));
+        img.src = qrDataUrl;
+      });
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
       qrOk = true;
-    } catch {}
+    } catch (err) {
+      console.error('二维码绘制报错:', err);
+    }
+  } else {
+    console.error('二维码库 QRCode 未加载，请检查网络或 CDN 链接');
   }
+
+  // 如果二维码失败，绘制一个带提示的灰色方块
   if (!qrOk) {
-    ctx.fillStyle = '#eceff1'; ctx.fillRect(qrX, qrY, qrSize, qrSize);
+    ctx.fillStyle = '#f5f5f5'; ctx.fillRect(qrX, qrY, qrSize, qrSize);
     ctx.fillStyle = '#90a4ae';
     ctx.font = '20px "PingFang SC", "Microsoft YaHei", sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('二维码', qrX + qrSize / 2, qrY + qrSize / 2);
+    ctx.fillText('扫码查看', qrX + qrSize / 2, qrY + qrSize / 2);
+    ctx.fillText('详情', qrX + qrSize / 2, qrY + qrSize / 2 + 24);
   }
 
+  // 8. 绘制左侧文字信息
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillStyle = '#0d47a1';
   ctx.font = 'bold 34px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillText('云和·蓝天救援队', 40, qrY);
+  
   ctx.fillStyle = '#78909c';
   ctx.font = '24px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillText('同在蓝天下 携手为公益', 40, qrY + 50);
+  
   ctx.fillStyle = '#e53935';
   ctx.font = 'bold 28px "PingFang SC", "Microsoft YaHei", sans-serif';
   ctx.fillText('400-600-9958', 40, qrY + 96);
@@ -1069,7 +1102,6 @@ window.handleMeClose = () => {
   closeModal('modal-me');
 };
 
-// 使用 RPC 校验登录，绕过 RLS 且不把密码字段返回前端
 window.memberLogin = async () => {
   const name = document.getElementById('meName').value.trim();
   const pwd = document.getElementById('mePwd').value.trim();
@@ -1087,11 +1119,7 @@ window.memberLogin = async () => {
   btn.disabled = false; btn.textContent = '登 录';
 
   if (error) {
-    if (/function .* does not exist|could not find/i.test(error.message || '')) {
-      alert('系统尚未部署登录函数，请联系管理员在 Supabase 执行升级 SQL（verify_member_login / set_member_password）。');
-    } else {
-      alert('登录失败：' + error.message);
-    }
+    alert('登录失败：' + error.message);
     return;
   }
 
@@ -1103,9 +1131,8 @@ window.memberLogin = async () => {
   document.getElementById('mePwd').value = '';
 
   if (!row.pwd_changed) {
-    // 首次登录，强制改密
     pendingFirstLogin = true;
-    pendingOldPassword = pwd;    // 记住刚输入的初始密码，用于校验
+    pendingOldPassword = pwd;    
     showChangePwdView();
   } else {
     pendingFirstLogin = false;
@@ -1124,7 +1151,6 @@ function showChangePwdView() {
   document.getElementById('cpError').style.display = 'none';
 }
 
-// 首次登录修改密码，使用 RPC 写入，绕过 RLS
 window.submitChangePwd = async () => {
   const np = document.getElementById('cpNewPwd').value.trim();
   const cp = document.getElementById('cpConfirmPwd').value.trim();
@@ -1150,11 +1176,7 @@ window.submitChangePwd = async () => {
   btn.disabled = false; btn.textContent = '保存新密码';
 
   if (error) {
-    if (/function .* does not exist|could not find/i.test(error.message || '')) {
-      showErr('系统尚未部署改密函数，请联系管理员执行升级 SQL。');
-    } else {
-      showErr('保存失败：' + error.message);
-    }
+    showErr('保存失败：' + error.message);
     return;
   }
   if (!data) {
@@ -1178,7 +1200,6 @@ window.cancelChangePwd = () => {
   renderMe();
 };
 
-// 个人中心内主动修改密码
 window.changePwdFromProfile = async () => {
   if (!currentMember) return;
   const oldPwd = prompt('请输入当前密码：');
@@ -1274,7 +1295,7 @@ function renderMe() {
   `;
 }
 
-/* ============ 通讯录（仅登录后可见） ============ */
+/* ============ 通讯录 ============ */
 window.openContact = () => {
   if (!currentMember) {
     alert('通讯录仅对已登录队员开放，请先登录');
