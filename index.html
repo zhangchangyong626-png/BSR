@@ -381,7 +381,7 @@
     <div class="modal-title">发起任务招募</div>
     <p class="me-hint" style="margin-top:-6px;">填写任务信息提交后，需管理员审核通过才会在首页「任务招募接龙」中展示。</p>
 
-    <div class="input-group"><input id="ctCreator" placeholder="你的真实姓名（须为在队队员）" required></div>
+    <div class="input-group"><input id="ctCreator" placeholder="登录后自动填入" readonly style="background:#f4f5f7;" required></div>  
     <div class="input-group"><input id="ctTitle" placeholder="任务标题" required></div>
 
     <div style="margin-bottom:12px;">
@@ -491,6 +491,10 @@ let globalAllMembers = [];
 let recruitsResData = null;
 let signupsResData = null;
 let currentMember = null;
+try {
+  const saved = localStorage.getItem('lh_member');
+  if (saved) currentMember = JSON.parse(saved);
+} catch (e) { currentMember = null; }
 let pendingFirstLogin = false;
 let pendingOldPassword = '';
 let currentTypeFilter = 'all';
@@ -1409,18 +1413,19 @@ window.handleMeClose = () => {
 
 /* ============ 发起任务（队员投稿 → 待审核） ============ */
 window.openCreateTask = () => {
-  // ★ 未登录拦截
+  // ★ 未登录：提示 + 跳「我的」登录
   if (!currentMember || !currentMember.name) {
+    window.__pendingCreateTask = true;
     alert('发起任务需先登录。\n请使用「我的」中队员账号登录后再操作。');
-    window.__pendingCreateTask = true;   // 记住登录后要干嘛
-    openMe();                            // 打开「我的」登录弹窗
+    openMe();
     return;
   }
 
+  // 已登录：自动填姓名并锁定
   const nameEl = document.getElementById('ctCreator');
   if (nameEl) {
     nameEl.value = currentMember.name;
-    nameEl.readOnly = true;              // ★ 禁止改他人姓名
+    nameEl.readOnly = true;
     nameEl.style.background = '#f4f5f7';
   }
   openModal('modal-create-task');
