@@ -45,7 +45,6 @@
 
   #chart-section { display: none; background: #fff; margin: 0 10px 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
 
-  /* 年份切换 */
   .year-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 12px 15px 0; background: #fff; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .year-tabs::-webkit-scrollbar { display: none; }
   .year-tabs.in-modal { padding: 0 0 12px; background: transparent; }
@@ -190,7 +189,6 @@
   .q-year-card .q-cats { font-size: 12px; color: #546e7a; margin-top: 8px; }
   .q-sum { font-size: 12px; color: #90a4ae; text-align: center; margin-top: 8px; }
 
-  /* 通讯录电话拨号 */
   .contact-phone { color: #1565c0; text-decoration: none; }
   .contact-phone:active { opacity: .7; }
 
@@ -399,7 +397,7 @@
   </div>
 </div>
 
-<!-- 新增：发起任务弹窗 -->
+<!-- 发起任务弹窗 -->
 <div id="modal-create-task" class="modal">
   <div class="modal-content">
     <div class="close-btn" onclick="closeModal('modal-create-task')">×</div>
@@ -502,7 +500,7 @@
 
 <script type="module">
 import { supabase } from './supabaseClient.js';
-window.supabase = supabase;   //
+window.supabase = supabase;
 
 const DEFAULT_BANNER = 'https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png';
 const NOW_YEAR = String(new Date().getFullYear());
@@ -512,13 +510,13 @@ let bannerIndex = 0;
 let bannerTimer = null;
 let suppressBannerClick = false;
 
-/* ===== 年度统计相关 ===== */
+/* ===== 年度统计 ===== */
 let globalYearStats = {};        // { '2026': { 姓名: {name,total,rescue,training,fire,events[]} }, ... }
-let globalYears = [];            // ['2026','2025',...]，降序（'未知'排最后）
-let selectedStatYear = null;     // 出勤榜单当前年份，'all' 表示全部年份
-let selectedMeYear = null;       // 「我的」当前年份
-let selectedHistoryYear = null;  // 历史记录当前年份，'all' 表示全部年份
-let globalMemberStats = {};      // 兼容：当前榜单年份的统计表
+let globalMergedStats = null;    // "全部年份"缓存
+let globalYears = [];
+let selectedStatYear = null;
+let selectedMeYear = null;
+let selectedHistoryYear = null;
 
 let globalAllTasks = [];
 let globalAllMembers = [];
@@ -537,8 +535,7 @@ let currentPosterTaskId = null;
 let barChartInstance = null;
 let pieChartInstance = null;
 
-const { data: { session } } = await supabase.auth.getSession();
-
+/* 一次性初始化 */
 const [tasksRes, membersRes, recruitsRes, signupsRes, settingsRes] = await Promise.all([
   supabase.from('tasks').select('*').order('task_time', { ascending: false }),
   supabase.from('members').select('id,name,phone,status,emergency_contact,pwd_changed').eq('status', '在队').order('name'),
@@ -569,16 +566,12 @@ renderHistoryYearTabs();
 renderTasks();
 bindHistoryTabs();
 
+/* 通过 ?task=xxx 直达活动详情 */
 (function openTaskFromUrl() {
-  try {
-    const id = new URLSearchParams(window.location.search).get('task');
-    if (id) {
-      setTimeout(() => {
-        const t = globalAllTasks.find(x => String(x.id) === String(id));
-        if (t) openTaskDetail(id);
-      }, 300);
-    }
-  } catch (e) {}
+  const id = new URLSearchParams(window.location.search).get('task');
+  if (!id) return;
+  const t = globalAllTasks.find(x => String(x.id) === String(id));
+  if (t) openTaskDetail(encodeURIComponent(id));
 })();
 
 /* ============ 工具 ============ */
@@ -599,6 +592,10 @@ function formatTime(t) {
 }
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+/* 用于放进 onclick="fn('...')" 的参数：encodeURIComponent 不会编码单引号，需补一刀 */
+function enc(v) {
+  return encodeURIComponent(String(v ?? '')).replace(/'/g, '%27');
 }
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text).catch(() => {
@@ -783,17 +780,17 @@ function renderRecruits() {
   }
   document.getElementById('recruit-section').style.display = 'block';
   container.innerHTML = recruitsResData.map(r => {
-    const signups = (signupsResData || []).filter(s => s.recruitment_id === r.id);
+    const signups = (signupsResData || []).filter(s => String(s.recruitment_id) === String(r.id));
     const signupNames = signups.map(s => `<span class="signup-tag">${esc(s.member_name)}</span>`).join('');
     const isExpired = r.task_time ? new Date(r.task_time).getTime() < Date.now() : false;
-    let uniformStr = r.uniform_type ? r.uniform_type.split(',').join('、') : '';
-    let actionHtml = isExpired
+    const uniformStr = r.uniform_type ? r.uniform_type.split(',').join('、') : '';
+    const actionHtml = isExpired
       ? `<div class="expired-box">该任务已过集合时间</div>`
       : `<div class="recruit-actions">
-          <input type="text" id="signupName_${r.id}" placeholder="输入真实姓名报名">
-          <button class="btn-primary" onclick="handleSignup(${r.id})">接龙</button>
-          <button class="btn-share" onclick="handleShare(${r.id})">分享</button>
-          <button class="btn-outline" onclick="handleQuit(${r.id})">退出</button>
+          <input type="text" id="signupName_${esc(r.id)}" placeholder="输入真实姓名报名">
+          <button class="btn-primary" onclick="handleSignup('${enc(r.id)}')">接龙</button>
+          <button class="btn-share" onclick="handleShare('${enc(r.id)}')">分享</button>
+          <button class="btn-outline" onclick="handleQuit('${enc(r.id)}')">退出</button>
         </div>`;
     return `
       <div class="recruit-card">
@@ -825,46 +822,56 @@ function buildRecruitShareText(r, signups) {
   return text;
 }
 
-window.handleSignup = async (id) => {
+window.handleSignup = async (idEnc) => {
+  const id = decodeURIComponent(idEnc);
   const nameInput = document.getElementById(`signupName_${id}`);
-  const name = nameInput.value.trim();
+  const name = (nameInput?.value || '').trim();
   if (!name) { alert('请输入姓名'); return; }
   if (!globalAllMembers.some(m => m.name === name)) { alert('未在「在队队员」名单中找到该姓名'); return; }
-  const exists = (signupsResData || []).find(s => s.recruitment_id === id && s.member_name === name);
+  const exists = (signupsResData || []).find(s => String(s.recruitment_id) === String(id) && s.member_name === name);
   if (exists) { alert('你已报名'); return; }
+
   const { error } = await supabase.from('recruitment_signups').insert({ recruitment_id: id, member_name: name });
   if (error) { alert('报名失败：' + error.message); return; }
-  const { data } = await supabase.from('recruitment_signups').select('*');
-  signupsResData = data || [];
+
+  /* 只取当前招募的报名，避免全表刷新 */
+  const { data } = await supabase.from('recruitment_signups').select('*').eq('recruitment_id', id);
+  signupsResData = [
+    ...(signupsResData || []).filter(s => String(s.recruitment_id) !== String(id)),
+    ...(data || [])
+  ];
   renderRecruits();
-  const r = recruitsResData.find(x => x.id === id);
-  const signups = signupsResData.filter(s => s.recruitment_id === id);
+
+  const r = recruitsResData.find(x => String(x.id) === String(id));
+  const signups = (signupsResData || []).filter(s => String(s.recruitment_id) === String(id));
   const shareText = buildRecruitShareText(r, signups);
   document.getElementById('shareTextArea').value = shareText;
   copyToClipboard(shareText);
   document.getElementById('shareModal').style.display = 'flex';
 };
 
-window.handleShare = (id) => {
-  const r = recruitsResData.find(x => x.id === id);
+window.handleShare = (idEnc) => {
+  const id = decodeURIComponent(idEnc);
+  const r = recruitsResData.find(x => String(x.id) === String(id));
   if (!r) return;
-  const signups = (signupsResData || []).filter(s => s.recruitment_id === id);
+  const signups = (signupsResData || []).filter(s => String(s.recruitment_id) === String(id));
   const text = buildRecruitShareText(r, signups);
   document.getElementById('shareTextArea').value = text;
   copyToClipboard(text);
   document.getElementById('shareModal').style.display = 'flex';
 };
 
-window.handleQuit = async (id) => {
+window.handleQuit = async (idEnc) => {
+  const id = decodeURIComponent(idEnc);
   const nameInput = document.getElementById(`signupName_${id}`);
-  const name = nameInput.value.trim();
+  const name = (nameInput?.value || '').trim();
   if (!name) { alert('请输入姓名'); return; }
-  const exists = (signupsResData || []).find(s => s.recruitment_id === id && s.member_name === name);
+  const exists = (signupsResData || []).find(s => String(s.recruitment_id) === String(id) && s.member_name === name);
   if (!exists) { alert('你未报名此任务'); return; }
   if (!confirm(`确定让「${name}」退出此任务报名？`)) return;
+
   await supabase.from('recruitment_signups').delete().eq('id', exists.id);
-  const { data } = await supabase.from('recruitment_signups').select('*');
-  signupsResData = data || [];
+  signupsResData = (signupsResData || []).filter(s => s.id !== exists.id);
   renderRecruits();
   alert('已退出');
 };
@@ -890,13 +897,17 @@ function bindHistoryTabs() {
   });
 }
 
+/* 统一生成年份 chips */
+function buildYearChips(opts, selected, onclickName) {
+  return opts.map(y =>
+    `<div class="year-tab${y === selected ? ' active' : ''}" onclick="${onclickName}('${y}')">${yearLabel(y)}</div>`
+  ).join('');
+}
+
 function renderHistoryYearTabs() {
   const box = document.getElementById('historyYearTabs');
   if (!box) return;
-  const opts = ['all', ...globalYears];
-  box.innerHTML = opts.map(y =>
-    `<div class="year-tab${y === selectedHistoryYear ? ' active' : ''}" onclick="switchHistoryYear('${y}')">${yearLabel(y)}</div>`
-  ).join('');
+  box.innerHTML = buildYearChips(['all', ...globalYears], selectedHistoryYear, 'switchHistoryYear');
 }
 
 window.switchHistoryYear = (year) => {
@@ -913,11 +924,9 @@ function renderTasks() {
   }
   let list = globalAllTasks;
 
-  // 先按年份过滤
   if (selectedHistoryYear && selectedHistoryYear !== 'all') {
     list = list.filter(t => yearOf(t.task_time) === selectedHistoryYear);
   }
-  // 再按类型过滤
   if (currentTypeFilter !== 'all') list = list.filter(t => (t.event_type || '') === currentTypeFilter);
 
   if (list.length === 0) {
@@ -925,14 +934,14 @@ function renderTasks() {
     return;
   }
   container.innerHTML = list.map(t => {
-    let membersStr = (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0)
+    const membersStr = (t.member_hours && Array.isArray(t.member_hours) && t.member_hours.length > 0)
       ? t.member_hours.map(m => `${esc(m.name)}(${m.hours}h)`).join('、')
       : (t.members || '-');
     const photos = getPhotos(t);
     const thumbs = photos.slice(0, 4).map(u =>
-      `<img src="${esc(u)}" alt="照片" onclick="event.stopPropagation();viewPhoto('${esc(u)}')">`).join('');
+      `<img src="${esc(u)}" alt="照片" onclick="event.stopPropagation();viewPhoto('${enc(u)}')">`).join('');
     return `
-      <div class="task-card" onclick="openTaskDetail('${t.id}')">
+      <div class="task-card" onclick="openTaskDetail('${enc(t.id)}')">
         <div class="task-card-avatar">记</div>
         <div class="task-content">
           <div class="task-title">${esc(t.title)}</div>
@@ -944,7 +953,8 @@ function renderTasks() {
   }).join('');
 }
 
-window.openTaskDetail = (id) => {
+window.openTaskDetail = (idEnc) => {
+  const id = decodeURIComponent(idEnc);
   const t = globalAllTasks.find(x => String(x.id) === String(id));
   if (!t) return;
   currentPosterTaskId = t.id;
@@ -963,15 +973,16 @@ window.openTaskDetail = (id) => {
     <div class="me-section-title" style="margin-top:8px;">参与队员及个人时长</div>
     <div class="member-hours-list">${memberHtml}</div>
     ${photos.length ? `<div class="me-section-title" style="margin-top:12px;">活动照片 (${photos.length})</div>
-      <div class="task-photo-grid">${photos.map(u => `<img src="${esc(u)}" alt="照片" onclick="viewPhoto('${esc(u)}')">`).join('')}</div>` : ''}
+      <div class="task-photo-grid">${photos.map(u => `<img src="${esc(u)}" alt="照片" onclick="viewPhoto('${enc(u)}')">`).join('')}</div>` : ''}
     <div class="task-share-row">
-      <button class="btn-wechat" onclick="shareTaskToWeChat('${t.id}')">分享到微信</button>
+      <button class="btn-wechat" onclick="shareTaskToWeChat('${enc(t.id)}')">分享到微信</button>
     </div>
   `;
   openModal('modal-task');
 };
 
-window.viewPhoto = (url) => {
+window.viewPhoto = (urlEnc) => {
+  const url = decodeURIComponent(urlEnc);
   document.getElementById('photoViewerImg').src = url;
   document.getElementById('photoViewer').style.display = 'flex';
 };
@@ -985,7 +996,8 @@ function getTaskShareUrl(id) {
   return `${base}?task=${id}`;
 }
 
-window.shareTaskToWeChat = (id) => {
+window.shareTaskToWeChat = (idEnc) => {
+  const id = decodeURIComponent(idEnc);
   currentPosterTaskId = id;
   document.getElementById('posterModal').style.display = 'flex';
   document.getElementById('posterLoading').style.display = 'block';
@@ -1012,11 +1024,9 @@ async function generatePoster(id) {
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // 背景
   ctx.fillStyle = '#f4f5f7';
   ctx.fillRect(0, 0, W, H);
 
-  // 顶部蓝条
   ctx.fillStyle = '#1565c0';
   ctx.fillRect(0, 0, W, 200);
 
@@ -1027,7 +1037,6 @@ async function generatePoster(id) {
   ctx.font = '300 24px -apple-system, "PingFang SC", sans-serif';
   ctx.fillText('活动记录分享', 50, 140);
 
-  // 白卡片
   const cardY = 230;
   const cardH = 640;
   ctx.fillStyle = '#fff';
@@ -1040,25 +1049,21 @@ async function generatePoster(id) {
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
 
-  // 标题
   ctx.fillStyle = '#333';
   ctx.font = '400 32px -apple-system, "PingFang SC", sans-serif';
   let yPos = wrapText(ctx, t.title || '活动记录', 70, cardY + 60, W - 140, 42) + 24;
 
-  // 类型/时间/时长
   ctx.fillStyle = '#546e7a';
   ctx.font = '300 22px -apple-system, "PingFang SC", sans-serif';
   ctx.fillText(`类型：${t.event_type || '无'}`, 70, yPos); yPos += 40;
   ctx.fillText(`时间：${formatTime(t.task_time)}`, 70, yPos); yPos += 40;
   ctx.fillText(`时长：${t.duration || '-'} 小时`, 70, yPos); yPos += 50;
 
-  // 内容
   ctx.fillStyle = '#444';
   ctx.font = '300 22px -apple-system, "PingFang SC", sans-serif';
   const content = (t.content || '').slice(0, 200);
   wrapText(ctx, content, 70, yPos, W - 140, 34);
 
-  // 底部二维码区
   const bottomY = 920;
   ctx.fillStyle = '#fff';
   ctx.shadowColor = 'rgba(0,0,0,0.08)';
@@ -1170,6 +1175,7 @@ function processTasksData(tasks) {
   });
 
   globalYearStats = byYear;
+  globalMergedStats = null; // 数据变了，作废「全部年份」缓存
 
   globalYears = Object.keys(byYear).sort((a, b) => {
     if (a === '未知') return 1;
@@ -1179,7 +1185,6 @@ function processTasksData(tasks) {
 
   if (globalYears.length === 0) globalYears = [NOW_YEAR];
 
-  // 默认年份：优先当年，否则最新年份
   if (!selectedStatYear || (selectedStatYear !== 'all' && !globalYears.includes(selectedStatYear))) {
     selectedStatYear = globalYears.includes(NOW_YEAR) ? NOW_YEAR : globalYears[0];
   }
@@ -1189,13 +1194,12 @@ function processTasksData(tasks) {
   if (!selectedHistoryYear || (selectedHistoryYear !== 'all' && !globalYears.includes(selectedHistoryYear))) {
     selectedHistoryYear = globalYears.includes(NOW_YEAR) ? NOW_YEAR : globalYears[0];
   }
-
-  globalMemberStats = getStatsMap(selectedStatYear);
 }
 
-/** 取某一年的统计表；year='all' 合并所有年份 */
+/** 取某一年的统计表；year='all' 合并所有年份（带缓存） */
 function getStatsMap(year) {
   if (year === 'all') {
+    if (globalMergedStats) return globalMergedStats;
     const merged = {};
     Object.keys(globalYearStats).forEach(y => {
       const map = globalYearStats[y] || {};
@@ -1209,12 +1213,12 @@ function getStatsMap(year) {
         merged[n].events = merged[n].events.concat(src.events);
       });
     });
+    globalMergedStats = merged;
     return merged;
   }
   return globalYearStats[year] || {};
 }
 
-/** 取某人某年的统计 */
 function getMemberStats(name, year) {
   const map = getStatsMap(year);
   return map[name] || { name, total: 0, rescue: 0, training: 0, fire: 0, events: [] };
@@ -1223,18 +1227,24 @@ function getMemberStats(name, year) {
 function renderYearTabs() {
   const box = document.getElementById('statsYearTabs');
   if (!box) return;
-  const opts = ['all', ...globalYears];
-  box.innerHTML = opts.map(y =>
-    `<div class="year-tab${y === selectedStatYear ? ' active' : ''}" onclick="switchStatsYear('${y}')">${yearLabel(y)}</div>`
-  ).join('');
+  box.innerHTML = buildYearChips(['all', ...globalYears], selectedStatYear, 'switchStatsYear');
 }
 
 window.switchStatsYear = (year) => {
   selectedStatYear = year;
-  globalMemberStats = getStatsMap(selectedStatYear);
   renderYearTabs();
   renderStats();
 };
+
+let chartResizeBound = false;
+function bindChartResize() {
+  if (chartResizeBound) return;
+  chartResizeBound = true;
+  window.addEventListener('resize', () => {
+    if (barChartInstance) barChartInstance.resize();
+    if (pieChartInstance) pieChartInstance.resize();
+  });
+}
 
 window.toggleChart = () => {
   const sec = document.getElementById('chart-section');
@@ -1244,6 +1254,7 @@ window.toggleChart = () => {
     sec.style.display = 'block';
     renderYearTabs();
     renderStats();
+    bindChartResize();
     setTimeout(() => {
       if (barChartInstance) barChartInstance.resize();
       if (pieChartInstance) pieChartInstance.resize();
@@ -1281,9 +1292,13 @@ function renderStats() {
     }]
   }, true);
 
-  const totalRescue = entries.reduce((s, e) => s + e.rescue, 0);
-  const totalTraining = entries.reduce((s, e) => s + e.training, 0);
-  const totalFire = entries.reduce((s, e) => s + e.fire, 0);
+  /* 一次遍历算三类总时长 */
+  let totalRescue = 0, totalTraining = 0, totalFire = 0;
+  for (const e of entries) {
+    totalRescue += e.rescue;
+    totalTraining += e.training;
+    totalFire += e.fire;
+  }
 
   if (!pieChartInstance) pieChartInstance = echarts.init(pieEl);
   pieChartInstance.setOption({
@@ -1316,7 +1331,7 @@ function renderStats() {
       </thead>
       <tbody>
         ${entries.map((e, i) => {
-          const key = encodeURIComponent(e.name);
+          const key = enc(e.name);
           return `
           <tr>
             <td class="rank ${i < 3 ? 'rank-' + (i+1) : ''}">${i+1}</td>
@@ -1344,9 +1359,8 @@ function renderStats() {
 }
 
 window.toggleMemberDetails = (key) => {
-  const name = decodeURIComponent(key);
-  const row = document.getElementById('details-' + encodeURIComponent(name));
-  const arrow = document.getElementById('arrow-' + encodeURIComponent(name));
+  const row = document.getElementById('details-' + key);
+  const arrow = document.getElementById('arrow-' + key);
   if (!row) return;
   const open = row.style.display === 'table-row';
   row.style.display = open ? 'none' : 'table-row';
@@ -1397,7 +1411,6 @@ window.openContact = () => {
   }
   view.innerHTML = globalAllMembers.map(m => {
     const phoneRaw = (m.phone || '').trim();
-    // 去掉多余字符，仅保留数字与 + 号，用于 tel:
     const phoneTel = phoneRaw.replace(/[^\d+]/g, '');
     const phoneHtml = phoneRaw
       ? `<div style="font-size:13px; color:#546e7a; margin-top:3px;">电话：${
@@ -1512,15 +1525,13 @@ function renderMeProfile() {
 
   const eventsHtml = events.length > 0
     ? events.map(ev => `
-        <div class="me-event" onclick="openTaskDetail('${ev.id}')">
+        <div class="me-event" onclick="openTaskDetail('${enc(ev.id)}')">
           <div class="me-event-title">${esc(ev.title || '活动')}</div>
           <div class="me-event-meta">${formatTime(ev.time)} · ${esc(String(ev.hours))}h${ev.type ? ' · ' + esc(ev.type) : ''}</div>
         </div>`).join('')
     : '<div class="me-empty">该年度暂无出勤记录</div>';
 
-  const yearChips = years.map(y =>
-    `<div class="year-tab${y === selectedMeYear ? ' active' : ''}" onclick="switchMeYear('${y}')">${yearLabel(y)}</div>`
-  ).join('');
+  const yearChips = buildYearChips(years, selectedMeYear, 'switchMeYear');
 
   document.getElementById('meProfileView').innerHTML = `
     <div class="me-summary">
@@ -1617,15 +1628,12 @@ window.handleMeClose = () => {
 
 /* ============ 发起任务（队员投稿 → 待审核） ============ */
 window.openCreateTask = () => {
-  // ★ 未登录：提示 + 跳「我的」登录
   if (!currentMember || !currentMember.name) {
     window.__pendingCreateTask = true;
     alert('发起任务需先登录。\n请使用「我的」中队员账号登录后再操作。');
     openMe();
     return;
   }
-
-  // 已登录：自动填姓名并锁定
   const nameEl = document.getElementById('ctCreator');
   if (nameEl) {
     nameEl.value = currentMember.name;
@@ -1672,15 +1680,12 @@ window.submitCreateTask = async () => {
       content: `【发起人：${creator}】\n${content}`,
       status: '待审核',
     };
-    console.log('[submitCreateTask] payload =', payload);
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('recruitments')
       .insert(payload)
       .select()
       .single();
-
-    console.log('[submitCreateTask] result =', data, error);
 
     if (error) {
       let hint = '';
@@ -1703,9 +1708,7 @@ window.submitCreateTask = async () => {
     closeModal('modal-create-task');
     alert('提交成功！管理员审核通过后，你的招募令会出现在首页。');
 
-    // 如果页面有刷新招募列表的函数，触发一下
-    if (typeof loadRecruits === 'function')     loadRecruits();
-    if (typeof renderRecruits === 'function')   renderRecruits();
+    if (typeof renderRecruits === 'function') renderRecruits();
   } catch (e) {
     console.error('[submitCreateTask] exception:', e);
     alert('提交异常：' + (e.message || e));
