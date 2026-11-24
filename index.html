@@ -49,6 +49,7 @@
   .year-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 12px 15px 0; background: #fff; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .year-tabs::-webkit-scrollbar { display: none; }
   .year-tabs.in-modal { padding: 0 0 12px; background: transparent; }
+  .year-tabs.in-history { padding: 10px 15px; border-bottom: 1px solid #eee; }
   .year-tab { flex-shrink: 0; padding: 5px 14px; border-radius: 20px; font-size: 13px; color: #546e7a; background: #f4f5f7; border: 1px solid #eceff1; cursor: pointer; font-weight: 300; white-space: nowrap; transition: all .15s; }
   .year-tab.active { background: #1565c0; color: #fff; border-color: #1565c0; font-weight: 400; }
   .year-tip { font-size: 12px; color: #90a4ae; padding: 6px 15px 0; font-weight: 300; }
@@ -189,6 +190,10 @@
   .q-year-card .q-cats { font-size: 12px; color: #546e7a; margin-top: 8px; }
   .q-sum { font-size: 12px; color: #90a4ae; text-align: center; margin-top: 8px; }
 
+  /* 通讯录电话拨号 */
+  .contact-phone { color: #1565c0; text-decoration: none; }
+  .contact-phone:active { opacity: .7; }
+
   #photoViewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 2000; align-items: center; justify-content: center; }
   #photoViewer img { max-width: 96%; max-height: 92%; object-fit: contain; }
   #photoViewer .pv-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 30px; font-weight: 300; cursor: pointer; }
@@ -286,6 +291,7 @@
   <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#1565c0;"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
   历史活动记录
 </div>
+<div class="year-tabs in-history" id="historyYearTabs"></div>
 <div class="tabs" id="historyTabs">
   <div class="tab-item active" data-type="all">全部</div>
   <div class="tab-item" data-type="公益救援">救援</div>
@@ -511,6 +517,7 @@ let globalYearStats = {};        // { '2026': { 姓名: {name,total,rescue,train
 let globalYears = [];            // ['2026','2025',...]，降序（'未知'排最后）
 let selectedStatYear = null;     // 出勤榜单当前年份，'all' 表示全部年份
 let selectedMeYear = null;       // 「我的」当前年份
+let selectedHistoryYear = null;  // 历史记录当前年份，'all' 表示全部年份
 let globalMemberStats = {};      // 兼容：当前榜单年份的统计表
 
 let globalAllTasks = [];
@@ -556,9 +563,10 @@ if (savedMemberName && globalAllMembers.some(m => m.name === savedMemberName)) {
 
 renderSettingsContent(allSettings);
 renderRecruits();
-renderTasks();
 processTasksData(globalAllTasks);
 renderYearTabs();
+renderHistoryYearTabs();
+renderTasks();
 bindHistoryTabs();
 
 (function openTaskFromUrl() {
@@ -882,6 +890,21 @@ function bindHistoryTabs() {
   });
 }
 
+function renderHistoryYearTabs() {
+  const box = document.getElementById('historyYearTabs');
+  if (!box) return;
+  const opts = ['all', ...globalYears];
+  box.innerHTML = opts.map(y =>
+    `<div class="year-tab${y === selectedHistoryYear ? ' active' : ''}" onclick="switchHistoryYear('${y}')">${yearLabel(y)}</div>`
+  ).join('');
+}
+
+window.switchHistoryYear = (year) => {
+  selectedHistoryYear = year;
+  renderHistoryYearTabs();
+  renderTasks();
+};
+
 function renderTasks() {
   const container = document.getElementById('task-list');
   if (!globalAllTasks || globalAllTasks.length === 0) {
@@ -889,9 +912,16 @@ function renderTasks() {
     return;
   }
   let list = globalAllTasks;
+
+  // 先按年份过滤
+  if (selectedHistoryYear && selectedHistoryYear !== 'all') {
+    list = list.filter(t => yearOf(t.task_time) === selectedHistoryYear);
+  }
+  // 再按类型过滤
   if (currentTypeFilter !== 'all') list = list.filter(t => (t.event_type || '') === currentTypeFilter);
+
   if (list.length === 0) {
-    container.innerHTML = '<div style="text-align:center; color:#999; padding:20px; font-weight:300;">该分类下暂无记录</div>';
+    container.innerHTML = `<div style="text-align:center; color:#999; padding:20px; font-weight:300;">${yearLabel(selectedHistoryYear || 'all')}该分类下暂无记录</div>`;
     return;
   }
   container.innerHTML = list.map(t => {
@@ -1156,6 +1186,9 @@ function processTasksData(tasks) {
   if (!selectedMeYear || !globalYears.includes(selectedMeYear)) {
     selectedMeYear = globalYears.includes(NOW_YEAR) ? NOW_YEAR : globalYears[0];
   }
+  if (!selectedHistoryYear || (selectedHistoryYear !== 'all' && !globalYears.includes(selectedHistoryYear))) {
+    selectedHistoryYear = globalYears.includes(NOW_YEAR) ? NOW_YEAR : globalYears[0];
+  }
 
   globalMemberStats = getStatsMap(selectedStatYear);
 }
@@ -1354,7 +1387,7 @@ window.doQuery = () => {
   `;
 };
 
-/* ============ 通讯录 ============ */
+/* ============ 通讯录（电话可点击拨号） ============ */
 window.openContact = () => {
   openModal('modal-contact');
   const view = document.getElementById('contact-data-view');
@@ -1362,13 +1395,24 @@ window.openContact = () => {
     view.innerHTML = '<p style="text-align:center; color:#999;">暂无队员信息</p>';
     return;
   }
-  view.innerHTML = globalAllMembers.map(m => `
-    <div style="padding:10px; border-bottom:1px dashed #eee;">
-      <div style="font-size:14px; color:#333; font-weight:400;">${esc(m.name)}</div>
-      ${m.phone ? `<div style="font-size:13px; color:#546e7a; margin-top:3px;">电话：${esc(m.phone)}</div>` : ''}
-      ${m.emergency_contact ? `<div style="font-size:12px; color:#90a4ae; margin-top:3px;">紧急联系人：${esc(m.emergency_contact)}</div>` : ''}
-    </div>
-  `).join('');
+  view.innerHTML = globalAllMembers.map(m => {
+    const phoneRaw = (m.phone || '').trim();
+    // 去掉多余字符，仅保留数字与 + 号，用于 tel:
+    const phoneTel = phoneRaw.replace(/[^\d+]/g, '');
+    const phoneHtml = phoneRaw
+      ? `<div style="font-size:13px; color:#546e7a; margin-top:3px;">电话：${
+          phoneTel
+            ? `<a class="contact-phone" href="tel:${esc(phoneTel)}">${esc(phoneRaw)}</a>`
+            : esc(phoneRaw)
+        }</div>`
+      : '';
+    return `
+      <div style="padding:10px; border-bottom:1px dashed #eee;">
+        <div style="font-size:14px; color:#333; font-weight:400;">${esc(m.name)}</div>
+        ${phoneHtml}
+        ${m.emergency_contact ? `<div style="font-size:12px; color:#90a4ae; margin-top:3px;">紧急联系人：${esc(m.emergency_contact)}</div>` : ''}
+      </div>`;
+  }).join('');
 };
 
 /* ============ 申请加入 ============ */
