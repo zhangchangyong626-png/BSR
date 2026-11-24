@@ -210,6 +210,18 @@
   .task-share-row { margin-top: 16px; display: flex; gap: 8px; }
   .task-share-row button { flex: 1; padding: 10px; border-radius: 8px; border: none; font-size: 14px; cursor: pointer; font-weight: 400;}
   .btn-wechat { background: #07c160; color: #fff;}
+
+  /* 历史活动工具栏：类型Tab + 年份下拉 */
+  .history-toolbar { background: #fff; display: flex; align-items: center; border-bottom: 1px solid #eee; padding-right: 12px; position: relative; }
+  .history-toolbar .tabs { flex: 1; min-width: 0; border-bottom: none; padding: 10px 15px; background: transparent; }
+  .history-year-select { position: relative; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 15px; background: #e3f2fd; color: #1565c0; font-size: 13px; font-weight: 400; cursor: pointer; user-select: none; transition: background .15s; }
+  .history-year-select:hover { background: #bbdefb; }
+  .history-year-select .arrow { font-size: 10px; color: #1565c0; transition: transform .2s; }
+  .history-year-select.open .arrow { transform: rotate(180deg); }
+  .year-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: #fff; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.12); min-width: 120px; max-height: 260px; overflow-y: auto; z-index: 300; padding: 4px 0; border: 1px solid #e3f2fd; }
+  .history-year-select.open .year-dropdown { display: block; }
+  .year-dropdown-item { padding: 9px 16px; font-size: 13px; color: #333; white-space: nowrap; cursor: pointer; font-weight: 300; transition: background .15s; }
+  .year-dropdown-item:hover, .year-dropdown-item.active { background: #e3f2fd; color: #1565c0; font-weight: 400; }
 </style>
 </head>
 <body>
@@ -289,12 +301,18 @@
   <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#1565c0;"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
   历史活动记录
 </div>
-<div class="year-tabs in-history" id="historyYearTabs"></div>
-<div class="tabs" id="historyTabs">
-  <div class="tab-item active" data-type="all">全部</div>
-  <div class="tab-item" data-type="公益救援">救援</div>
-  <div class="tab-item" data-type="技能培训">培训</div>
-  <div class="tab-item" data-type="森林消防">森林消防</div>
+<div class="history-toolbar">
+  <div class="tabs" id="historyTabs">
+    <div class="tab-item active" data-type="all">全部</div>
+    <div class="tab-item" data-type="公益救援">救援</div>
+    <div class="tab-item" data-type="技能培训">培训</div>
+    <div class="tab-item" data-type="森林消防">森林消防</div>
+  </div>
+  <div class="history-year-select" id="historyYearSelect">
+    <span id="historyYearLabel">全部年份</span>
+    <span class="arrow">▼</span>
+    <div class="year-dropdown" id="historyYearDropdown"></div>
+  </div>
 </div>
 <div id="task-list" class="task-list" style="padding-top: 10px;"></div>
 
@@ -565,6 +583,7 @@ renderYearTabs();
 renderHistoryYearTabs();
 renderTasks();
 bindHistoryTabs();
+initHistoryYearSelect();
 
 /* 通过 ?task=xxx 直达活动详情 */
 (function openTaskFromUrl() {
@@ -897,21 +916,48 @@ function bindHistoryTabs() {
   });
 }
 
-/* 统一生成年份 chips */
+/* 统一生成年份 chips（用于出勤榜单和我的弹窗） */
 function buildYearChips(opts, selected, onclickName) {
   return opts.map(y =>
     `<div class="year-tab${y === selected ? ' active' : ''}" onclick="${onclickName}('${y}')">${yearLabel(y)}</div>`
   ).join('');
 }
 
+/* 历史活动年份下拉：渲染选项并更新按钮文字 */
 function renderHistoryYearTabs() {
-  const box = document.getElementById('historyYearTabs');
-  if (!box) return;
-  box.innerHTML = buildYearChips(['all', ...globalYears], selectedHistoryYear, 'switchHistoryYear');
+  const label = document.getElementById('historyYearLabel');
+  const dropdown = document.getElementById('historyYearDropdown');
+  if (!label || !dropdown) return;
+  const years = ['all', ...globalYears];
+  label.textContent = yearLabel(selectedHistoryYear || 'all');
+  dropdown.innerHTML = years.map(y =>
+    `<div class="year-dropdown-item${y === selectedHistoryYear ? ' active' : ''}" data-year="${y}">${yearLabel(y)}</div>`
+  ).join('');
+}
+
+function initHistoryYearSelect() {
+  const sel = document.getElementById('historyYearSelect');
+  if (!sel || sel.dataset.bound === '1') return;
+  sel.dataset.bound = '1';
+  sel.addEventListener('click', (e) => {
+    const item = e.target.closest('.year-dropdown-item');
+    if (item) {
+      switchHistoryYear(item.dataset.year);
+      return;
+    }
+    sel.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (sel.classList.contains('open') && !sel.contains(e.target)) {
+      sel.classList.remove('open');
+    }
+  });
 }
 
 window.switchHistoryYear = (year) => {
   selectedHistoryYear = year;
+  const sel = document.getElementById('historyYearSelect');
+  if (sel) sel.classList.remove('open');
   renderHistoryYearTabs();
   renderTasks();
 };
@@ -1265,12 +1311,13 @@ window.toggleChart = () => {
 function renderStats() {
   const map = getStatsMap(selectedStatYear);
   const entries = Object.values(map).sort((a, b) => b.total - a.total);
+  /* 出勤榜单只显示前 10 名 */
+  const displayEntries = entries.slice(0, 10);
 
   const barEl = document.getElementById('barChart');
   const pieEl = document.getElementById('pieChart');
   if (!barEl || !pieEl) return;
 
-  const top10 = entries.slice(0, 10);
   const label = yearLabel(selectedStatYear);
 
   if (!barChartInstance) barChartInstance = echarts.init(barEl);
@@ -1279,14 +1326,14 @@ function renderStats() {
     tooltip: {},
     xAxis: {
       type: 'category',
-      data: top10.map(e => e.name),
+      data: displayEntries.map(e => e.name),
       axisLabel: { interval: 0, rotate: 30, fontSize: 10 }
     },
     yAxis: { type: 'value', name: '小时' },
     grid: { top: 40, bottom: 60, left: 40, right: 20 },
     series: [{
       type: 'bar',
-      data: top10.map(e => Number(e.total.toFixed(1))),
+      data: displayEntries.map(e => Number(e.total.toFixed(1))),
       itemStyle: { color: '#1565c0' },
       label: { show: true, position: 'top', fontSize: 10, color: '#1565c0' }
     }]
@@ -1320,7 +1367,7 @@ function renderStats() {
 
   const tableBox = document.getElementById('statsTableBox');
   if (!tableBox) return;
-  if (entries.length === 0) {
+  if (displayEntries.length === 0) {
     tableBox.innerHTML = `<p style="text-align:center;padding:20px;color:#999;font-weight:300;">${label} 暂无出勤数据</p>`;
     return;
   }
@@ -1330,7 +1377,7 @@ function renderStats() {
         <tr><th>排名</th><th>姓名</th><th>${selectedStatYear === 'all' ? '累计时长' : '年度时长'}</th><th></th></tr>
       </thead>
       <tbody>
-        ${entries.map((e, i) => {
+        ${displayEntries.map((e, i) => {
           const key = enc(e.name);
           return `
           <tr>
@@ -1517,212 +1564,4 @@ function renderMeProfile() {
   }
 
   const stats = getMemberStats(currentMember.name, selectedMeYear);
-  const events = [...(stats.events || [])].sort((a, b) => {
-    const ta = new Date(a.time).getTime() || 0;
-    const tb = new Date(b.time).getTime() || 0;
-    return tb - ta;
-  });
-
-  const eventsHtml = events.length > 0
-    ? events.map(ev => `
-        <div class="me-event" onclick="openTaskDetail('${enc(ev.id)}')">
-          <div class="me-event-title">${esc(ev.title || '活动')}</div>
-          <div class="me-event-meta">${formatTime(ev.time)} · ${esc(String(ev.hours))}h${ev.type ? ' · ' + esc(ev.type) : ''}</div>
-        </div>`).join('')
-    : '<div class="me-empty">该年度暂无出勤记录</div>';
-
-  const yearChips = buildYearChips(years, selectedMeYear, 'switchMeYear');
-
-  document.getElementById('meProfileView').innerHTML = `
-    <div class="me-summary">
-      <div class="me-name">${esc(currentMember.name)}</div>
-      <div class="me-year">${yearLabel(selectedMeYear)}出勤</div>
-      <div class="me-total">${stats.total.toFixed(1)}<small> 小时</small></div>
-      <div class="me-cats">
-        <span>救援 ${stats.rescue.toFixed(1)}h</span>
-        <span>培训 ${stats.training.toFixed(1)}h</span>
-        <span>消防 ${stats.fire.toFixed(1)}h</span>
-      </div>
-    </div>
-    <div class="me-section-title" style="margin-top:0;">统计年份</div>
-    <div class="year-tabs in-modal">${yearChips}</div>
-    <div class="me-section-title">${yearLabel(selectedMeYear)}参与事件（${events.length}）</div>
-    ${eventsHtml}
-    <button class="btn-block me-change-pwd" onclick="openChangePwd()">修改密码</button>
-    <button class="btn-block me-logout" onclick="memberLogout()">退出登录</button>
-  `;
-}
-
-window.openChangePwd = () => {
-  document.getElementById('meProfileView').style.display = 'none';
-  document.getElementById('meLoginView').style.display = 'none';
-  document.getElementById('meChangePwdView').style.display = 'block';
-  document.getElementById('meTitle').textContent = '修改密码';
-  pendingFirstLogin = false;
-  document.getElementById('cpError').style.display = 'none';
-  document.getElementById('cpNewPwd').value = '';
-  document.getElementById('cpConfirmPwd').value = '';
-};
-
-window.submitChangePwd = async () => {
-  const newPwd = (document.getElementById('cpNewPwd').value || '').trim();
-  const confirmPwd = (document.getElementById('cpConfirmPwd').value || '').trim();
-  const errEl = document.getElementById('cpError');
-
-  if (!newPwd || newPwd.length < 4) { errEl.textContent = '密码不少于 4 位'; errEl.style.display = 'block'; return; }
-  if (newPwd !== confirmPwd) { errEl.textContent = '两次密码不一致'; errEl.style.display = 'block'; return; }
-  if (!currentMember) { errEl.textContent = '会话已失效，请重新登录'; errEl.style.display = 'block'; return; }
-
-  const btn = document.getElementById('cpSubmitBtn');
-  btn.disabled = true;
-  btn.textContent = '保存中...';
-
-  const { error } = await supabase.from('members')
-    .update({ password: newPwd, pwd_changed: true })
-    .eq('id', currentMember.id);
-
-  btn.disabled = false;
-  btn.textContent = '保存新密码';
-
-  if (error) {
-    errEl.textContent = '保存失败：' + error.message + '\n如提示 pwd_changed 字段不存在，请先执行升级 SQL。';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  errEl.style.display = 'none';
-  pendingFirstLogin = false;
-  pendingOldPassword = '';
-  renderMeProfile();
-  alert('密码已保存');
-};
-
-window.cancelChangePwd = () => {
-  currentMember = null;
-  sessionStorage.removeItem('member_name');
-  pendingFirstLogin = false;
-  pendingOldPassword = '';
-  document.getElementById('meChangePwdView').style.display = 'none';
-  document.getElementById('meLoginView').style.display = 'block';
-  document.getElementById('meTitle').textContent = '我的';
-};
-
-window.memberLogout = () => {
-  currentMember = null;
-  sessionStorage.removeItem('member_name');
-  closeModal('modal-me');
-};
-
-window.handleMeClose = () => {
-  if (pendingFirstLogin) {
-    currentMember = null;
-    sessionStorage.removeItem('member_name');
-    pendingFirstLogin = false;
-    pendingOldPassword = '';
-    document.getElementById('meChangePwdView').style.display = 'none';
-    document.getElementById('meLoginView').style.display = 'block';
-    document.getElementById('meTitle').textContent = '我的';
-  }
-  closeModal('modal-me');
-};
-
-/* ============ 发起任务（队员投稿 → 待审核） ============ */
-window.openCreateTask = () => {
-  if (!currentMember || !currentMember.name) {
-    window.__pendingCreateTask = true;
-    alert('发起任务需先登录。\n请使用「我的」中队员账号登录后再操作。');
-    openMe();
-    return;
-  }
-  const nameEl = document.getElementById('ctCreator');
-  if (nameEl) {
-    nameEl.value = currentMember.name;
-    nameEl.readOnly = true;
-    nameEl.style.background = '#f4f5f7';
-  }
-  openModal('modal-create-task');
-};
-
-window.submitCreateTask = async () => {
-  const getVal = id => (document.getElementById(id)?.value || '').trim();
-  const creator  = getVal('ctCreator');
-  const title    = getVal('ctTitle');
-  const location = getVal('ctLocation');
-  const content  = getVal('ctContent');
-  const timeVal  = document.getElementById('ctTime')?.value || '';
-  const typeEl   = document.querySelector('input[name="ct_type"]:checked');
-  const uniformStr = Array.from(document.querySelectorAll('input[name="ct_uniform"]:checked'))
-    .map(e => e.value).join(', ');
-
-  if (!creator) return alert('请填写你的真实姓名');
-  if (!Array.isArray(globalAllMembers) || globalAllMembers.length === 0) {
-    alert('队员名单尚未加载完成，请刷新页面重试；若持续如此请检查网络或联系管理员。');
-    return;
-  }
-  if (!globalAllMembers.some(m => (m.name || '').trim() === creator)) {
-    alert(`未在「在队队员名单」中找到「${creator}」。\n请确认姓名与管理员登记完全一致（注意空格、繁简体）。`);
-    return;
-  }
-  if (!title) return alert('请填写任务标题');
-
-  const btn = document.getElementById('ctSubmitBtn');
-  const oldText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = '提交中...';
-
-  try {
-    const payload = {
-      title,
-      event_type: typeEl ? typeEl.value : '公益救援',
-      uniform_type: uniformStr || null,
-      location: location || null,
-      task_time: timeVal ? new Date(timeVal).toISOString() : null,
-      content: `【发起人：${creator}】\n${content}`,
-      status: '待审核',
-    };
-
-    const { error } = await supabase
-      .from('recruitments')
-      .insert(payload)
-      .select()
-      .single();
-
-    if (error) {
-      let hint = '';
-      if (error.code === '42501' || /row-level security/i.test(error.message)) {
-        hint = '\n\n👉 数据库权限未开放，请管理员执行「SQL 修复脚本」。';
-      } else if (/column .* does not exist/i.test(error.message)) {
-        hint = '\n\n👉 数据表缺字段，请管理员执行「SQL 修复脚本」。';
-      } else if (/violates check constraint/i.test(error.message)) {
-        hint = '\n\n👉 status/event_type 取值不合法，请管理员修正 CHECK 约束。';
-      } else if (/null value.*violates not-null/i.test(error.message)) {
-        hint = '\n\n👉 有必填字段为空，请管理员执行「SQL 修复脚本」。';
-      }
-      alert('提交失败：' + error.message + hint);
-      return;
-    }
-    ['ctTitle', 'ctLocation', 'ctTime', 'ctContent'].forEach(id => {
-      const el = document.getElementById(id); if (el) el.value = '';
-    });
-    document.querySelectorAll('input[name="ct_uniform"]').forEach(c => c.checked = false);
-    closeModal('modal-create-task');
-    alert('提交成功！管理员审核通过后，你的招募令会出现在首页。');
-
-    if (typeof renderRecruits === 'function') renderRecruits();
-  } catch (e) {
-    console.error('[submitCreateTask] exception:', e);
-    alert('提交异常：' + (e.message || e));
-  } finally {
-    btn.disabled = false;
-    btn.textContent = oldText;
-  }
-};
-
-/* ============ 滚动到历史 ============ */
-window.scrollToHistory = () => {
-  const el = document.getElementById('history-section');
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-};
-</script>
-</body>
-</html>
+  const events
