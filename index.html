@@ -44,6 +44,15 @@
   .bg-brown { background: linear-gradient(135deg, #a1887f, #5d4037); }
 
   #chart-section { display: none; background: #fff; margin: 0 10px 10px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+
+  /* 年份切换 */
+  .year-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 12px 15px 0; background: #fff; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .year-tabs::-webkit-scrollbar { display: none; }
+  .year-tabs.in-modal { padding: 0 0 12px; background: transparent; }
+  .year-tab { flex-shrink: 0; padding: 5px 14px; border-radius: 20px; font-size: 13px; color: #546e7a; background: #f4f5f7; border: 1px solid #eceff1; cursor: pointer; font-weight: 300; white-space: nowrap; transition: all .15s; }
+  .year-tab.active { background: #1565c0; color: #fff; border-color: #1565c0; font-weight: 400; }
+  .year-tip { font-size: 12px; color: #90a4ae; padding: 6px 15px 0; font-weight: 300; }
+
   .charts-container { display: flex; flex-wrap: wrap; gap: 15px; padding: 15px; background: #f9fbfd; border-bottom: 1px solid #eee; }
   .chart-box { flex: 1; min-width: 280px; height: 240px; }
   .stats-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
@@ -162,6 +171,7 @@
   .me-summary .me-name { font-size: 17px; font-weight: 400; }
   .me-summary .me-total { font-size: 32px; font-weight: 400; margin: 4px 0 2px; }
   .me-summary .me-total small { font-size: 14px; font-weight: 300; opacity: .85;}
+  .me-summary .me-year { font-size: 12px; opacity: .9; letter-spacing: .5px; }
   .me-cats { display: flex; justify-content: center; gap: 10px; font-size: 12px; opacity: .95; flex-wrap: wrap;}
   .me-section-title { font-size: 14px; color: #333; font-weight: 400; margin: 16px 0 8px; border-left: 3px solid #1565c0; padding-left: 8px;}
   .me-event { padding: 10px 0; border-bottom: 1px dashed #eceff1; cursor: pointer; }
@@ -171,6 +181,13 @@
   .me-empty { font-size: 13px; color: #b0bec5; text-align: center; padding: 16px 0; font-weight: 300;}
   .me-logout { margin-top: 16px; background: #eceff1; color: #546e7a; }
   .me-change-pwd { margin-top: 14px; background: #1565c0; color: #fff; }
+
+  .q-year-card { background: #e3f2fd; padding: 14px; border-radius: 8px; margin-bottom: 10px; }
+  .q-year-card .q-year { font-size: 13px; color: #546e7a; margin-bottom: 4px; }
+  .q-year-card .q-total { font-size: 24px; color: #1565c0; font-weight: 400; }
+  .q-year-card .q-total small { font-size: 13px; }
+  .q-year-card .q-cats { font-size: 12px; color: #546e7a; margin-top: 8px; }
+  .q-sum { font-size: 12px; color: #90a4ae; text-align: center; margin-top: 8px; }
 
   #photoViewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 2000; align-items: center; justify-content: center; }
   #photoViewer img { max-width: 96%; max-height: 92%; object-fit: contain; }
@@ -247,6 +264,8 @@
 </div>
 
 <div id="chart-section">
+  <div id="statsYearTabs" class="year-tabs"></div>
+  <div class="year-tip">时长按自然年分开统计，切换年份查看对应年度榜单</div>
   <div class="charts-container">
     <div id="barChart" class="chart-box"></div>
     <div id="pieChart" class="chart-box"></div>
@@ -381,7 +400,7 @@
     <div class="modal-title">发起任务招募</div>
     <p class="me-hint" style="margin-top:-6px;">填写任务信息提交后，需管理员审核通过才会在首页「任务招募接龙」中展示。</p>
 
-    <div class="input-group"><input id="ctCreator" placeholder="登录后自动填入" readonly style="background:#f4f5f7;" required></div>  
+    <div class="input-group"><input id="ctCreator" placeholder="登录后自动填入" readonly style="background:#f4f5f7;" required></div>
     <div class="input-group"><input id="ctTitle" placeholder="任务标题" required></div>
 
     <div style="margin-bottom:12px;">
@@ -477,15 +496,23 @@
 
 <script type="module">
 import { supabase } from './supabaseClient.js';
-window.supabase = supabase;   // 
+window.supabase = supabase;   //
 
 const DEFAULT_BANNER = 'https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png';
+const NOW_YEAR = String(new Date().getFullYear());
+
 let bannerCount = 0;
 let bannerIndex = 0;
 let bannerTimer = null;
 let suppressBannerClick = false;
 
-let globalMemberStats = {};
+/* ===== 年度统计相关 ===== */
+let globalYearStats = {};        // { '2026': { 姓名: {name,total,rescue,training,fire,events[]} }, ... }
+let globalYears = [];            // ['2026','2025',...]，降序（'未知'排最后）
+let selectedStatYear = null;     // 出勤榜单当前年份，'all' 表示全部年份
+let selectedMeYear = null;       // 「我的」当前年份
+let globalMemberStats = {};      // 兼容：当前榜单年份的统计表
+
 let globalAllTasks = [];
 let globalAllMembers = [];
 let recruitsResData = null;
@@ -531,6 +558,7 @@ renderSettingsContent(allSettings);
 renderRecruits();
 renderTasks();
 processTasksData(globalAllTasks);
+renderYearTabs();
 bindHistoryTabs();
 
 (function openTaskFromUrl() {
@@ -573,6 +601,17 @@ function copyToClipboard(text) {
     document.execCommand('copy');
     document.body.removeChild(ta);
   });
+}
+function yearOf(t) {
+  if (!t) return '未知';
+  const d = new Date(t);
+  if (isNaN(d.getTime())) return '未知';
+  return String(d.getFullYear());
+}
+function yearLabel(y) {
+  if (y === 'all') return '全部年份';
+  if (y === '未知') return '未标注年份';
+  return y + ' 年';
 }
 
 /* ============ 弹窗开关 ============ */
@@ -1065,29 +1104,104 @@ window.copyTaskShareLink = () => {
   alert('链接已复制');
 };
 
-/* ============ 图表 & 统计 ============ */
+/* ============ 统计（按年份分开） ============ */
 function processTasksData(tasks) {
-  const stats = {};
+  const byYear = {};
+
   (tasks || []).forEach(t => {
+    const year = yearOf(t.task_time);
+    if (!byYear[year]) byYear[year] = {};
+    const stats = byYear[year];
+
     const push = (name, h) => {
-      if (!stats[name]) stats[name] = { name, total: 0, rescue: 0, training: 0, fire: 0, events: [] };
-      stats[name].total += h;
-      if (t.event_type === '公益救援') stats[name].rescue += h;
-      else if (t.event_type === '技能培训') stats[name].training += h;
-      else if (t.event_type === '森林消防') stats[name].fire += h;
-      stats[name].events.push({ title: t.title, time: t.task_time, hours: h, type: t.event_type });
+      const n = String(name || '').trim();
+      if (!n) return;
+      if (!stats[n]) stats[n] = { name: n, total: 0, rescue: 0, training: 0, fire: 0, events: [] };
+      stats[n].total += h;
+      if (t.event_type === '公益救援') stats[n].rescue += h;
+      else if (t.event_type === '技能培训') stats[n].training += h;
+      else if (t.event_type === '森林消防') stats[n].fire += h;
+      stats[n].events.push({
+        id: t.id,
+        title: t.title,
+        time: t.task_time,
+        hours: h,
+        type: t.event_type
+      });
     };
 
     if (Array.isArray(t.member_hours) && t.member_hours.length > 0) {
       t.member_hours.forEach(m => push(m.name, parseFloat(m.hours) || 0));
     } else if (t.members && t.duration) {
-      const names = t.members.split(',').map(s => s.trim()).filter(Boolean);
+      const names = String(t.members).split(/[,，、]/).map(s => s.trim()).filter(Boolean);
       const h = parseFloat(t.duration) || 0;
       names.forEach(n => push(n, h));
     }
   });
-  globalMemberStats = stats;
+
+  globalYearStats = byYear;
+
+  globalYears = Object.keys(byYear).sort((a, b) => {
+    if (a === '未知') return 1;
+    if (b === '未知') return -1;
+    return Number(b) - Number(a);
+  });
+
+  if (globalYears.length === 0) globalYears = [NOW_YEAR];
+
+  // 默认年份：优先当年，否则最新年份
+  if (!selectedStatYear || (selectedStatYear !== 'all' && !globalYears.includes(selectedStatYear))) {
+    selectedStatYear = globalYears.includes(NOW_YEAR) ? NOW_YEAR : globalYears[0];
+  }
+  if (!selectedMeYear || !globalYears.includes(selectedMeYear)) {
+    selectedMeYear = globalYears.includes(NOW_YEAR) ? NOW_YEAR : globalYears[0];
+  }
+
+  globalMemberStats = getStatsMap(selectedStatYear);
 }
+
+/** 取某一年的统计表；year='all' 合并所有年份 */
+function getStatsMap(year) {
+  if (year === 'all') {
+    const merged = {};
+    Object.keys(globalYearStats).forEach(y => {
+      const map = globalYearStats[y] || {};
+      Object.keys(map).forEach(n => {
+        const src = map[n];
+        if (!merged[n]) merged[n] = { name: n, total: 0, rescue: 0, training: 0, fire: 0, events: [] };
+        merged[n].total += src.total;
+        merged[n].rescue += src.rescue;
+        merged[n].training += src.training;
+        merged[n].fire += src.fire;
+        merged[n].events = merged[n].events.concat(src.events);
+      });
+    });
+    return merged;
+  }
+  return globalYearStats[year] || {};
+}
+
+/** 取某人某年的统计 */
+function getMemberStats(name, year) {
+  const map = getStatsMap(year);
+  return map[name] || { name, total: 0, rescue: 0, training: 0, fire: 0, events: [] };
+}
+
+function renderYearTabs() {
+  const box = document.getElementById('statsYearTabs');
+  if (!box) return;
+  const opts = ['all', ...globalYears];
+  box.innerHTML = opts.map(y =>
+    `<div class="year-tab${y === selectedStatYear ? ' active' : ''}" onclick="switchStatsYear('${y}')">${yearLabel(y)}</div>`
+  ).join('');
+}
+
+window.switchStatsYear = (year) => {
+  selectedStatYear = year;
+  globalMemberStats = getStatsMap(selectedStatYear);
+  renderYearTabs();
+  renderStats();
+};
 
 window.toggleChart = () => {
   const sec = document.getElementById('chart-section');
@@ -1095,6 +1209,7 @@ window.toggleChart = () => {
     sec.style.display = 'none';
   } else {
     sec.style.display = 'block';
+    renderYearTabs();
     renderStats();
     setTimeout(() => {
       if (barChartInstance) barChartInstance.resize();
@@ -1104,17 +1219,19 @@ window.toggleChart = () => {
 };
 
 function renderStats() {
-  const entries = Object.values(globalMemberStats).sort((a, b) => b.total - a.total);
+  const map = getStatsMap(selectedStatYear);
+  const entries = Object.values(map).sort((a, b) => b.total - a.total);
 
   const barEl = document.getElementById('barChart');
   const pieEl = document.getElementById('pieChart');
   if (!barEl || !pieEl) return;
 
   const top10 = entries.slice(0, 10);
+  const label = yearLabel(selectedStatYear);
 
   if (!barChartInstance) barChartInstance = echarts.init(barEl);
   barChartInstance.setOption({
-    title: { text: '出勤时长 TOP 10', left: 'center', textStyle: { fontSize: 14, fontWeight: 400 } },
+    title: { text: `出勤时长 TOP 10（${label}）`, left: 'center', textStyle: { fontSize: 14, fontWeight: 400 } },
     tooltip: {},
     xAxis: {
       type: 'category',
@@ -1123,8 +1240,13 @@ function renderStats() {
     },
     yAxis: { type: 'value', name: '小时' },
     grid: { top: 40, bottom: 60, left: 40, right: 20 },
-    series: [{ type: 'bar', data: top10.map(e => Number(e.total.toFixed(1))), itemStyle: { color: '#1565c0' } }]
-  });
+    series: [{
+      type: 'bar',
+      data: top10.map(e => Number(e.total.toFixed(1))),
+      itemStyle: { color: '#1565c0' },
+      label: { show: true, position: 'top', fontSize: 10, color: '#1565c0' }
+    }]
+  }, true);
 
   const totalRescue = entries.reduce((s, e) => s + e.rescue, 0);
   const totalTraining = entries.reduce((s, e) => s + e.training, 0);
@@ -1132,7 +1254,7 @@ function renderStats() {
 
   if (!pieChartInstance) pieChartInstance = echarts.init(pieEl);
   pieChartInstance.setOption({
-    title: { text: '任务类型时长占比', left: 'center', textStyle: { fontSize: 14, fontWeight: 400 } },
+    title: { text: `任务类型时长占比（${label}）`, left: 'center', textStyle: { fontSize: 14, fontWeight: 400 } },
     tooltip: { trigger: 'item' },
     legend: { bottom: 0 },
     series: [{
@@ -1146,32 +1268,34 @@ function renderStats() {
         { name: '森林消防', value: Number(totalFire.toFixed(1)), itemStyle: { color: '#c62828' } }
       ]
     }]
-  });
+  }, true);
 
   const tableBox = document.getElementById('statsTableBox');
   if (!tableBox) return;
   if (entries.length === 0) {
-    tableBox.innerHTML = '<p style="text-align:center;padding:20px;color:#999;font-weight:300;">暂无出勤数据</p>';
+    tableBox.innerHTML = `<p style="text-align:center;padding:20px;color:#999;font-weight:300;">${label} 暂无出勤数据</p>`;
     return;
   }
   tableBox.innerHTML = `
     <table class="stats-table">
       <thead>
-        <tr><th>排名</th><th>姓名</th><th>总时长</th><th></th></tr>
+        <tr><th>排名</th><th>姓名</th><th>${selectedStatYear === 'all' ? '累计时长' : '年度时长'}</th><th></th></tr>
       </thead>
       <tbody>
-        ${entries.map((e, i) => `
+        ${entries.map((e, i) => {
+          const key = encodeURIComponent(e.name);
+          return `
           <tr>
             <td class="rank ${i < 3 ? 'rank-' + (i+1) : ''}">${i+1}</td>
             <td>
-              <span class="clickable-name" onclick="toggleMemberDetails('${esc(e.name)}')">
-                ${esc(e.name)} <span class="arrow" id="arrow-${esc(e.name)}">▼</span>
+              <span class="clickable-name" onclick="toggleMemberDetails('${key}')">
+                ${esc(e.name)} <span class="arrow" id="arrow-${key}">▼</span>
               </span>
             </td>
             <td class="total-col">${e.total.toFixed(1)} h</td>
             <td></td>
           </tr>
-          <tr class="details-row" id="details-${esc(e.name)}" style="display:none;">
+          <tr class="details-row" id="details-${key}" style="display:none;">
             <td colspan="4">
               <div class="details-flex">
                 <span class="detail-badge rescue">救援 ${e.rescue.toFixed(1)}h</span>
@@ -1179,40 +1303,54 @@ function renderStats() {
                 <span class="detail-badge fire">消防 ${e.fire.toFixed(1)}h</span>
               </div>
             </td>
-          </tr>
-        `).join('')}
+          </tr>`;
+        }).join('')}
       </tbody>
     </table>
   `;
 }
 
-window.toggleMemberDetails = (name) => {
-  const row = document.getElementById('details-' + name);
-  const arrow = document.getElementById('arrow-' + name);
+window.toggleMemberDetails = (key) => {
+  const name = decodeURIComponent(key);
+  const row = document.getElementById('details-' + encodeURIComponent(name));
+  const arrow = document.getElementById('arrow-' + encodeURIComponent(name));
   if (!row) return;
   const open = row.style.display === 'table-row';
   row.style.display = open ? 'none' : 'table-row';
   if (arrow) arrow.classList.toggle('open', !open);
 };
 
-/* ============ 查询 ============ */
+/* ============ 个人查询（按年份分开显示） ============ */
 window.doQuery = () => {
   const name = (document.getElementById('queryNameInput').value || '').trim();
   const resultEl = document.getElementById('queryResult');
   if (!name) { alert('请输入姓名'); return; }
-  const stats = globalMemberStats[name];
-  if (!stats) {
+
+  const rows = globalYears
+    .map(y => ({ year: y, stats: (globalYearStats[y] || {})[name] }))
+    .filter(r => r.stats);
+
+  if (rows.length === 0) {
     resultEl.innerHTML = `<p style="text-align:center; color:#999;">未查询到「${esc(name)}」的出勤记录</p>`;
     return;
   }
+
+  const totalAll = rows.reduce((s, r) => s + r.stats.total, 0);
+
   resultEl.innerHTML = `
-    <div style="background:#e3f2fd; padding:15px; border-radius:8px; text-align:center;">
-      <div style="font-size:16px; margin-bottom:8px;">${esc(stats.name)}</div>
-      <div style="font-size:24px; color:#1565c0; font-weight:400;">${stats.total.toFixed(1)} <span style="font-size:13px;">小时</span></div>
-      <div style="font-size:12px; color:#546e7a; margin-top:8px;">
-        救援 ${stats.rescue.toFixed(1)}h · 培训 ${stats.training.toFixed(1)}h · 消防 ${stats.fire.toFixed(1)}h
+    <div style="text-align:center; font-size:15px; color:#333; margin-bottom:10px;">${esc(name)}</div>
+    ${rows.map(r => `
+      <div class="q-year-card">
+        <div class="q-year">${yearLabel(r.year)}</div>
+        <div class="q-total">${r.stats.total.toFixed(1)} <small>小时</small></div>
+        <div class="q-cats">
+          救援 ${r.stats.rescue.toFixed(1)}h · 培训 ${r.stats.training.toFixed(1)}h · 消防 ${r.stats.fire.toFixed(1)}h
+          · 参与 ${r.stats.events.length} 次
+        </div>
       </div>
-    </div>
+    `).join('')}
+    ${rows.length > 1 ? `<div class="q-sum">各年度合计：${totalAll.toFixed(1)} 小时（仅供参考，不参与年度排名）</div>` : ''}
+    <div class="q-sum">时长按自然年分开统计</div>
   `;
 };
 
@@ -1304,6 +1442,11 @@ window.memberLogin = async () => {
   }
 };
 
+window.switchMeYear = (year) => {
+  selectedMeYear = year;
+  renderMeProfile();
+};
+
 function renderMeProfile() {
   if (!currentMember) return;
   document.getElementById('meLoginView').style.display = 'none';
@@ -1311,19 +1454,34 @@ function renderMeProfile() {
   document.getElementById('meProfileView').style.display = 'block';
   document.getElementById('meTitle').textContent = '我的';
 
-  const stats = globalMemberStats[currentMember.name] || { total: 0, rescue: 0, training: 0, fire: 0, events: [] };
-  const events = [...stats.events].sort((a, b) => new Date(b.time) - new Date(a.time));
+  const years = globalYears.length ? globalYears : [NOW_YEAR];
+  if (!selectedMeYear || !years.includes(selectedMeYear)) {
+    selectedMeYear = years.includes(NOW_YEAR) ? NOW_YEAR : years[0];
+  }
+
+  const stats = getMemberStats(currentMember.name, selectedMeYear);
+  const events = [...(stats.events || [])].sort((a, b) => {
+    const ta = new Date(a.time).getTime() || 0;
+    const tb = new Date(b.time).getTime() || 0;
+    return tb - ta;
+  });
+
   const eventsHtml = events.length > 0
     ? events.map(ev => `
-        <div class="me-event">
+        <div class="me-event" onclick="openTaskDetail('${ev.id}')">
           <div class="me-event-title">${esc(ev.title || '活动')}</div>
           <div class="me-event-meta">${formatTime(ev.time)} · ${esc(String(ev.hours))}h${ev.type ? ' · ' + esc(ev.type) : ''}</div>
         </div>`).join('')
-    : '<div class="me-empty">暂无出勤记录</div>';
+    : '<div class="me-empty">该年度暂无出勤记录</div>';
+
+  const yearChips = years.map(y =>
+    `<div class="year-tab${y === selectedMeYear ? ' active' : ''}" onclick="switchMeYear('${y}')">${yearLabel(y)}</div>`
+  ).join('');
 
   document.getElementById('meProfileView').innerHTML = `
     <div class="me-summary">
       <div class="me-name">${esc(currentMember.name)}</div>
+      <div class="me-year">${yearLabel(selectedMeYear)}出勤</div>
       <div class="me-total">${stats.total.toFixed(1)}<small> 小时</small></div>
       <div class="me-cats">
         <span>救援 ${stats.rescue.toFixed(1)}h</span>
@@ -1331,7 +1489,9 @@ function renderMeProfile() {
         <span>消防 ${stats.fire.toFixed(1)}h</span>
       </div>
     </div>
-    <div class="me-section-title">参与事件（${events.length}）</div>
+    <div class="me-section-title" style="margin-top:0;">统计年份</div>
+    <div class="year-tabs in-modal">${yearChips}</div>
+    <div class="me-section-title">${yearLabel(selectedMeYear)}参与事件（${events.length}）</div>
     ${eventsHtml}
     <button class="btn-block me-change-pwd" onclick="openChangePwd()">修改密码</button>
     <button class="btn-block me-logout" onclick="memberLogout()">退出登录</button>
@@ -1510,6 +1670,7 @@ window.submitCreateTask = async () => {
     btn.textContent = oldText;
   }
 };
+
 /* ============ 滚动到历史 ============ */
 window.scrollToHistory = () => {
   const el = document.getElementById('history-section');
