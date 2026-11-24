@@ -517,7 +517,10 @@
 </div>
 
 <script type="module">
-import { supabase } from './supabaseClient.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 window.supabase = supabase;
 
 const DEFAULT_BANNER = 'https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png';
@@ -529,8 +532,8 @@ let bannerTimer = null;
 let suppressBannerClick = false;
 
 /* ===== 年度统计 ===== */
-let globalYearStats = {};        // { '2026': { 姓名: {name,total,rescue,training,fire,events[]} }, ... }
-let globalMergedStats = null;    // "全部年份"缓存
+let globalYearStats = {};
+let globalMergedStats = null;
 let globalYears = [];
 let selectedStatYear = null;
 let selectedMeYear = null;
@@ -568,7 +571,11 @@ recruitsResData = recruitsRes.data || [];
 signupsResData = signupsRes.data || [];
 const allSettings = settingsRes.data || [];
 
+if (tasksRes.error) console.warn('tasks 查询出错：', tasksRes.error.message);
 if (membersRes.error) console.warn('members 查询出错：', membersRes.error.message);
+if (recruitsRes.error) console.warn('recruitments 查询出错：', recruitsRes.error.message);
+if (signupsRes.error) console.warn('signups 查询出错：', signupsRes.error.message);
+if (settingsRes.error) console.warn('settings 查询出错：', settingsRes.error.message);
 
 const savedMemberName = sessionStorage.getItem('member_name');
 if (savedMemberName && globalAllMembers.some(m => m.name === savedMemberName)) {
@@ -612,7 +619,6 @@ function formatTime(t) {
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-/* 用于放进 onclick="fn('...')" 的参数：encodeURIComponent 不会编码单引号，需补一刀 */
 function enc(v) {
   return encodeURIComponent(String(v ?? '')).replace(/'/g, '%27');
 }
@@ -853,7 +859,6 @@ window.handleSignup = async (idEnc) => {
   const { error } = await supabase.from('recruitment_signups').insert({ recruitment_id: id, member_name: name });
   if (error) { alert('报名失败：' + error.message); return; }
 
-  /* 只取当前招募的报名，避免全表刷新 */
   const { data } = await supabase.from('recruitment_signups').select('*').eq('recruitment_id', id);
   signupsResData = [
     ...(signupsResData || []).filter(s => String(s.recruitment_id) !== String(id)),
@@ -916,14 +921,12 @@ function bindHistoryTabs() {
   });
 }
 
-/* 统一生成年份 chips（用于出勤榜单和我的弹窗） */
 function buildYearChips(opts, selected, onclickName) {
   return opts.map(y =>
     `<div class="year-tab${y === selected ? ' active' : ''}" onclick="${onclickName}('${y}')">${yearLabel(y)}</div>`
   ).join('');
 }
 
-/* 历史活动年份下拉：渲染选项并更新按钮文字 */
 function renderHistoryYearTabs() {
   const label = document.getElementById('historyYearLabel');
   const dropdown = document.getElementById('historyYearDropdown');
@@ -1221,7 +1224,7 @@ function processTasksData(tasks) {
   });
 
   globalYearStats = byYear;
-  globalMergedStats = null; // 数据变了，作废「全部年份」缓存
+  globalMergedStats = null;
 
   globalYears = Object.keys(byYear).sort((a, b) => {
     if (a === '未知') return 1;
@@ -1242,7 +1245,6 @@ function processTasksData(tasks) {
   }
 }
 
-/** 取某一年的统计表；year='all' 合并所有年份（带缓存） */
 function getStatsMap(year) {
   if (year === 'all') {
     if (globalMergedStats) return globalMergedStats;
@@ -1311,7 +1313,6 @@ window.toggleChart = () => {
 function renderStats() {
   const map = getStatsMap(selectedStatYear);
   const entries = Object.values(map).sort((a, b) => b.total - a.total);
-  /* 出勤榜单只显示前 10 名 */
   const displayEntries = entries.slice(0, 10);
 
   const barEl = document.getElementById('barChart');
@@ -1339,7 +1340,6 @@ function renderStats() {
     }]
   }, true);
 
-  /* 一次遍历算三类总时长 */
   let totalRescue = 0, totalTraining = 0, totalFire = 0;
   for (const e of entries) {
     totalRescue += e.rescue;
@@ -1414,7 +1414,7 @@ window.toggleMemberDetails = (key) => {
   if (arrow) arrow.classList.toggle('open', !open);
 };
 
-/* ============ 个人查询（按年份分开显示） ============ */
+/* ============ 个人查询 ============ */
 window.doQuery = () => {
   const name = (document.getElementById('queryNameInput').value || '').trim();
   const resultEl = document.getElementById('queryResult');
@@ -1448,7 +1448,7 @@ window.doQuery = () => {
   `;
 };
 
-/* ============ 通讯录（电话可点击拨号） ============ */
+/* ============ 通讯录 ============ */
 window.openContact = () => {
   openModal('modal-contact');
   const view = document.getElementById('contact-data-view');
@@ -1673,7 +1673,7 @@ window.handleMeClose = () => {
   closeModal('modal-me');
 };
 
-/* ============ 发起任务（队员投稿 → 待审核） ============ */
+/* ============ 发起任务 ============ */
 window.openCreateTask = () => {
   if (!currentMember || !currentMember.name) {
     window.__pendingCreateTask = true;
