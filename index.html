@@ -477,6 +477,7 @@
 
 <script type="module">
 import { supabase } from './supabaseClient.js';
+window.supabase = supabase;   // 
 
 const DEFAULT_BANNER = 'https://img.alicdn.com/imgextra/i3/706125935/O1CN01KcQnpNaiagF49oPo_!!706125935.png';
 let bannerCount = 0;
@@ -1414,51 +1415,84 @@ window.openCreateTask = () => {
 };
 
 window.submitCreateTask = async () => {
-  const creator = (document.getElementById('ctCreator').value || '').trim();
-  const title = (document.getElementById('ctTitle').value || '').trim();
-  const location = (document.getElementById('ctLocation').value || '').trim();
-  const timeVal = document.getElementById('ctTime').value;
-  const content = (document.getElementById('ctContent').value || '').trim();
-  const typeEl = document.querySelector('input[name="ct_type"]:checked');
+  const getVal = id => (document.getElementById(id)?.value || '').trim();
+  const creator  = getVal('ctCreator');
+  const title    = getVal('ctTitle');
+  const location = getVal('ctLocation');
+  const content  = getVal('ctContent');
+  const timeVal  = document.getElementById('ctTime')?.value || '';
+  const typeEl   = document.querySelector('input[name="ct_type"]:checked');
   const uniformStr = Array.from(document.querySelectorAll('input[name="ct_uniform"]:checked'))
     .map(e => e.value).join(', ');
 
-  if (!creator) { alert('请填写你的真实姓名'); return; }
-  if (!globalAllMembers.some(m => m.name === creator)) {
-    alert('未在「在队队员名单」中找到该姓名，请联系管理员确认后再提交。');
+  if (!creator) return alert('请填写你的真实姓名');
+  if (!Array.isArray(globalAllMembers) || globalAllMembers.length === 0) {
+    alert('队员名单尚未加载完成，请刷新页面重试；若持续如此请检查网络或联系管理员。');
     return;
   }
-  if (!title) { alert('请填写任务标题'); return; }
+  if (!globalAllMembers.some(m => (m.name || '').trim() === creator)) {
+    alert(`未在「在队队员名单」中找到「${creator}」。\n请确认姓名与管理员登记完全一致（注意空格、繁简体）。`);
+    return;
+  }
+  if (!title) return alert('请填写任务标题');
 
   const btn = document.getElementById('ctSubmitBtn');
+  const oldText = btn.textContent;
   btn.disabled = true;
   btn.textContent = '提交中...';
 
-  const payload = {
-    title,
-    event_type: typeEl ? typeEl.value : '公益救援',
-    uniform_type: uniformStr || null,
-    location,
-    task_time: timeVal ? new Date(timeVal).toISOString() : null,
-    content: `【发起人：${creator}】\n${content}`,
-    status: '待审核'
-  };
+  try {
+    const payload = {
+      title,
+      event_type: typeEl ? typeEl.value : '公益救援',
+      uniform_type: uniformStr || null,
+      location: location || null,
+      task_time: timeVal ? new Date(timeVal).toISOString() : null,
+      content: `【发起人：${creator}】\n${content}`,
+      status: '待审核',
+    };
+    console.log('[submitCreateTask] payload =', payload);
 
-  const { error } = await supabase.from('recruitments').insert(payload);
+    const { data, error } = await supabase
+      .from('recruitments')
+      .insert(payload)
+      .select()
+      .single();
 
-  btn.disabled = false;
-  btn.textContent = '提交审核';
+    console.log('[submitCreateTask] result =', data, error);
 
-  if (error) { alert('提交失败：' + error.message); return; }
+    if (error) {
+      let hint = '';
+      if (error.code === '42501' || /row-level security/i.test(error.message)) {
+        hint = '\n\n👉 数据库权限未开放，请管理员执行「SQL 修复脚本」。';
+      } else if (/column .* does not exist/i.test(error.message)) {
+        hint = '\n\n👉 数据表缺字段，请管理员执行「SQL 修复脚本」。';
+      } else if (/violates check constraint/i.test(error.message)) {
+        hint = '\n\n👉 status/event_type 取值不合法，请管理员修正 CHECK 约束。';
+      } else if (/null value.*violates not-null/i.test(error.message)) {
+        hint = '\n\n👉 有必填字段为空，请管理员执行「SQL 修复脚本」。';
+      }
+      alert('提交失败：' + error.message + hint);
+      return;
+    }
+    ['ctTitle', 'ctLocation', 'ctTime', 'ctContent'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.querySelectorAll('input[name="ct_uniform"]').forEach(c => c.checked = false);
+    closeModal('modal-create-task');
+    alert('提交成功！管理员审核通过后，你的招募令会出现在首页。');
 
-  ['ctTitle', 'ctLocation', 'ctTime', 'ctContent'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
-  document.querySelectorAll('input[name="ct_uniform"]').forEach(c => c.checked = false);
-  closeModal('modal-create-task');
-  alert('提交成功！管理员审核通过后，你的招募令会出现在首页。');
+    // 如果页面有刷新招募列表的函数，触发一下
+    if (typeof loadRecruits === 'function')     loadRecruits();
+    if (typeof renderRecruits === 'function')   renderRecruits();
+  } catch (e) {
+    console.error('[submitCreateTask] exception:', e);
+    alert('提交异常：' + (e.message || e));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
 };
-
 /* ============ 滚动到历史 ============ */
 window.scrollToHistory = () => {
   const el = document.getElementById('history-section');
