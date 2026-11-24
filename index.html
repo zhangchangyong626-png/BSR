@@ -1409,8 +1409,20 @@ window.handleMeClose = () => {
 
 /* ============ 发起任务（队员投稿 → 待审核） ============ */
 window.openCreateTask = () => {
+  // ★ 未登录拦截
+  if (!currentMember || !currentMember.name) {
+    alert('发起任务需先登录。\n请使用「我的」中队员账号登录后再操作。');
+    window.__pendingCreateTask = true;   // 记住登录后要干嘛
+    openMe();                            // 打开「我的」登录弹窗
+    return;
+  }
+
   const nameEl = document.getElementById('ctCreator');
-  if (nameEl) nameEl.value = currentMember ? currentMember.name : '';
+  if (nameEl) {
+    nameEl.value = currentMember.name;
+    nameEl.readOnly = true;              // ★ 禁止改他人姓名
+    nameEl.style.background = '#f4f5f7';
+  }
   openModal('modal-create-task');
 };
 
