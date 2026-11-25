@@ -16,6 +16,11 @@
 
   .app-header { background: #0d47a1; padding: 0; display: block; position: relative; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
   .settings-btn { position: absolute; top: 10px; right: 10px; color: #fff; font-size: 18px; text-decoration: none; z-index: 10; background: rgba(0,0,0,.35); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; line-height: 1; }
+  .refresh-btn { position: absolute; top: 10px; right: 52px; z-index: 10; background: rgba(0,0,0,.35); width: 34px; height: 34px; border-radius: 50%; border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+  .refresh-btn svg { width: 18px; height: 18px; fill: #fff; }
+  .refresh-btn:active { transform: scale(.9); }
+  .refresh-btn.spinning svg { animation: refresh-spin .6s linear infinite; }
+  @keyframes refresh-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 
   .banner-carousel { position: relative; width: 100%; max-width: 600px; aspect-ratio: 2 / 1; overflow: hidden; margin: 0 auto; background: #0d47a1; touch-action: pan-y; }
   .banner-track { display: flex; height: 100%; width: 100%; transition: transform .5s ease; will-change: transform; }
@@ -93,6 +98,7 @@
   .recruit-detail span { color: #999; }
   .recruit-members { background: #f9fbfd; padding: 8px; border-radius: 6px; font-size: 13px; color: #546e7a; margin: 10px 0; border: 1px solid #eee; }
   .signup-tag { display: inline-block; background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 10px; font-size: 12px; margin: 2px; }
+  .signup-tag.me { background: #fff3e0; color: #e65100; font-weight: 400;}
   .recruit-actions { display: flex; gap: 6px; margin-top: 10px; align-items: center; }
   .recruit-actions input { flex: 1; min-width: 0; padding: 6px 8px; font-size: 13px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-weight: 300; }
   .btn-primary, .btn-share, .btn-outline { padding: 6px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; white-space: nowrap; font-weight: 300; }
@@ -227,6 +233,9 @@
 <body>
 
 <header class="app-header">
+  <button class="refresh-btn" onclick="refreshPage()" title="刷新页面" aria-label="刷新页面">
+    <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+  </button>
   <a href="login.html" class="settings-btn" title="管理员登录">⚙</a>
   <div class="banner-carousel" id="bannerCarousel">
     <div class="banner-track" id="bannerTrack"></div>
@@ -353,19 +362,23 @@
     <div class="modal-title" id="meTitle">我的</div>
 
     <div id="meLoginView">
-      <p class="me-hint">队员登录后可查看自己的出勤时长、参与事件和队员通讯录。<br>首次登录初始密码为 <strong>0000</strong>，登录后需修改密码。</p>
+      <p class="me-hint">
+        队员登录后可查看自己的出勤时长、参与事件和队员通讯录。<br>
+        首次登录：输入真实姓名后直接点「登录」，再按提示设置两次新密码即可（无需旧密码）。<br>
+        已设置过密码的队员，请输入密码登录。
+      </p>
       <div class="input-group"><input id="meName" placeholder="真实姓名"></div>
-      <div class="input-group"><input id="mePwd" type="password" placeholder="密码"></div>
+      <div class="input-group"><input id="mePwd" type="password" placeholder="密码（首次登录可留空）"></div>
       <button class="btn-block" onclick="memberLogin()" id="meLoginBtn">登 录</button>
     </div>
 
     <div id="meChangePwdView" style="display:none;">
-      <p class="me-hint">首次登录，请设置个人新密码（不少于 4 位）。<br>设置后请牢记，下次登录将使用新密码。</p>
+      <p class="me-hint">请设置个人新密码（不少于 4 位），需输入两次确认。<br>设置后请牢记，下次登录将使用该密码。</p>
       <div class="input-group"><input id="cpNewPwd" type="password" placeholder="新密码"></div>
       <div class="input-group"><input id="cpConfirmPwd" type="password" placeholder="再次输入新密码"></div>
       <div id="cpError" style="color:#e53935; font-size:13px; margin-bottom:10px; display:none;"></div>
       <button class="btn-block" onclick="submitChangePwd()" id="cpSubmitBtn">保存新密码</button>
-      <button class="btn-block" style="background:#eceff1; color:#546e7a; margin-top:10px;" onclick="cancelChangePwd()">暂不修改，退出登录</button>
+      <button class="btn-block" style="background:#eceff1; color:#546e7a; margin-top:10px;" onclick="cancelChangePwd()">暂不设置，退出登录</button>
     </div>
 
     <div id="meProfileView" style="display:none"></div>
@@ -549,7 +562,6 @@ try {
   if (saved) currentMember = JSON.parse(saved);
 } catch (e) { currentMember = null; }
 let pendingFirstLogin = false;
-let pendingOldPassword = '';
 let currentTypeFilter = 'all';
 let currentPosterTaskId = null;
 
@@ -581,6 +593,9 @@ const savedMemberName = sessionStorage.getItem('member_name');
 if (savedMemberName && globalAllMembers.some(m => m.name === savedMemberName)) {
   const m = globalAllMembers.find(x => x.name === savedMemberName);
   currentMember = { id: String(m.id), name: m.name };
+} else if (savedMemberName) {
+  currentMember = null;
+  sessionStorage.removeItem('member_name');
 }
 
 renderSettingsContent(allSettings);
@@ -643,6 +658,16 @@ function yearLabel(y) {
   if (y === '未知') return '未标注年份';
   return y + ' 年';
 }
+function isLoggedIn() {
+  return !!(currentMember && currentMember.name);
+}
+
+/* ============ 页面刷新 ============ */
+window.refreshPage = () => {
+  const btn = document.querySelector('.refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  setTimeout(() => { location.reload(); }, 220);
+};
 
 /* ============ 弹窗开关 ============ */
 window.openModal = (id) => {
@@ -806,13 +831,19 @@ function renderRecruits() {
   document.getElementById('recruit-section').style.display = 'block';
   container.innerHTML = recruitsResData.map(r => {
     const signups = (signupsResData || []).filter(s => String(s.recruitment_id) === String(r.id));
-    const signupNames = signups.map(s => `<span class="signup-tag">${esc(s.member_name)}</span>`).join('');
+    const signupNames = signups.map(s => {
+      const isMe = isLoggedIn() && s.member_name === currentMember.name;
+      return `<span class="signup-tag${isMe ? ' me' : ''}">${esc(s.member_name)}</span>`;
+    }).join('');
     const isExpired = r.task_time ? new Date(r.task_time).getTime() < Date.now() : false;
     const uniformStr = r.uniform_type ? r.uniform_type.split(',').join('、') : '';
+    const placeholder = isLoggedIn()
+      ? '留空默认本人，可填他人姓名'
+      : '请先登录后再接龙';
     const actionHtml = isExpired
       ? `<div class="expired-box">该任务已过集合时间</div>`
       : `<div class="recruit-actions">
-          <input type="text" id="signupName_${esc(r.id)}" placeholder="输入真实姓名报名">
+          <input type="text" id="signupName_${esc(r.id)}" placeholder="${placeholder}">
           <button class="btn-primary" onclick="handleSignup('${enc(r.id)}')">接龙</button>
           <button class="btn-share" onclick="handleShare('${enc(r.id)}')">分享</button>
           <button class="btn-outline" onclick="handleQuit('${enc(r.id)}')">退出</button>
@@ -847,14 +878,26 @@ function buildRecruitShareText(r, signups) {
   return text;
 }
 
+/* ---------- 接龙：必须登录；登录后留空即本人，填名字可代他人 ---------- */
 window.handleSignup = async (idEnc) => {
   const id = decodeURIComponent(idEnc);
+
+  if (!isLoggedIn()) {
+    alert('接龙需先登录。\n请使用「我的」中的队员账号登录后再操作。');
+    openMe();
+    return;
+  }
+
   const nameInput = document.getElementById(`signupName_${id}`);
-  const name = (nameInput?.value || '').trim();
-  if (!name) { alert('请输入姓名'); return; }
-  if (!globalAllMembers.some(m => m.name === name)) { alert('未在「在队队员」名单中找到该姓名'); return; }
+  const typed = (nameInput?.value || '').trim();
+  const name = typed || currentMember.name;
+
+  if (!globalAllMembers.some(m => m.name === name)) {
+    alert(`未在「在队队员」名单中找到「${name}」\n请确认姓名与管理员登记完全一致。`);
+    return;
+  }
   const exists = (signupsResData || []).find(s => String(s.recruitment_id) === String(id) && s.member_name === name);
-  if (exists) { alert('你已报名'); return; }
+  if (exists) { alert(`「${name}」已报名此任务`); return; }
 
   const { error } = await supabase.from('recruitment_signups').insert({ recruitment_id: id, member_name: name });
   if (error) { alert('报名失败：' + error.message); return; }
@@ -885,19 +928,30 @@ window.handleShare = (idEnc) => {
   document.getElementById('shareModal').style.display = 'flex';
 };
 
+/* ---------- 退出：必须登录，且必须填写要退出的姓名 ---------- */
 window.handleQuit = async (idEnc) => {
   const id = decodeURIComponent(idEnc);
+
+  if (!isLoggedIn()) {
+    alert('退出报名需先登录。\n请使用「我的」中的队员账号登录后再操作。');
+    openMe();
+    return;
+  }
+
   const nameInput = document.getElementById(`signupName_${id}`);
   const name = (nameInput?.value || '').trim();
-  if (!name) { alert('请输入姓名'); return; }
+  if (!name) { alert('请输入要退出的队员姓名'); return; }
+
   const exists = (signupsResData || []).find(s => String(s.recruitment_id) === String(id) && s.member_name === name);
-  if (!exists) { alert('你未报名此任务'); return; }
+  if (!exists) { alert(`「${name}」未报名此任务`); return; }
   if (!confirm(`确定让「${name}」退出此任务报名？`)) return;
 
-  await supabase.from('recruitment_signups').delete().eq('id', exists.id);
+  const { error } = await supabase.from('recruitment_signups').delete().eq('id', exists.id);
+  if (error) { alert('退出失败：' + error.message); return; }
+
   signupsResData = (signupsResData || []).filter(s => s.id !== exists.id);
   renderRecruits();
-  alert('已退出');
+  alert(`「${name}」已退出`);
 };
 
 window.copyShareTextAgain = () => {
@@ -1010,7 +1064,7 @@ window.openTaskDetail = (idEnc) => {
   const photos = getPhotos(t);
   const mh = Array.isArray(t.member_hours) ? t.member_hours : [];
   const memberHtml = mh.length
-    ? mh.map(m => `<span class="member-hours-tag${currentMember && m.name === currentMember.name ? ' me' : ''}">${esc(m.name)} · ${esc(String(m.hours))}h</span>`).join('')
+    ? mh.map(m => `<span class="member-hours-tag${isLoggedIn() && m.name === currentMember.name ? ' me' : ''}">${esc(m.name)} · ${esc(String(m.hours))}h</span>`).join('')
     : `<span class="member-hours-tag">${esc(t.members || '-')}</span>`;
 
   document.getElementById('taskDetailTitle').textContent = t.title || '活动详情';
@@ -1508,32 +1562,41 @@ window.openMe = () => {
   }
 };
 
+/* 判断该队员是否已自行设置过密码（password 非空且 pwd_changed 不为 false） */
+function hasSetPassword(data) {
+  const pwd = (data && data.password != null) ? String(data.password).trim() : '';
+  if (!pwd) return false;
+  if (data.pwd_changed === false) return false;
+  return true;
+}
+
 window.memberLogin = async () => {
   const name = (document.getElementById('meName').value || '').trim();
   const pwd = (document.getElementById('mePwd').value || '').trim();
-  if (!name || !pwd) { alert('请输入姓名和密码'); return; }
+  if (!name) { alert('请输入真实姓名'); return; }
 
   const btn = document.getElementById('meLoginBtn');
   btn.disabled = true;
   btn.textContent = '登录中...';
 
   const { data, error } = await supabase.from('members').select('*').eq('name', name).eq('status', '在队').maybeSingle();
+
   btn.disabled = false;
   btn.textContent = '登 录';
 
   if (error) { alert('登录失败：' + error.message); return; }
-  if (!data) { alert('未找到该队员，请联系管理员'); return; }
-  if ((data.password || '0000') !== pwd) { alert('密码错误'); return; }
-
-  currentMember = { id: String(data.id), name: data.name };
-  sessionStorage.setItem('member_name', data.name);
+  if (!data) { alert('未找到该队员，请联系管理员确认是否已审核通过'); return; }
 
   document.getElementById('meName').value = '';
   document.getElementById('mePwd').value = '';
 
-  if (!data.pwd_changed) {
+  // 未设置过密码 → 首次登录，直接进入设置两次新密码流程
+  if (!hasSetPassword(data)) {
+    currentMember = { id: String(data.id), name: data.name };
+    sessionStorage.setItem('member_name', data.name);
     pendingFirstLogin = true;
-    pendingOldPassword = pwd;
+    renderRecruits();
+
     document.getElementById('meLoginView').style.display = 'none';
     document.getElementById('meProfileView').style.display = 'none';
     document.getElementById('meChangePwdView').style.display = 'block';
@@ -1541,9 +1604,17 @@ window.memberLogin = async () => {
     document.getElementById('cpError').style.display = 'none';
     document.getElementById('cpNewPwd').value = '';
     document.getElementById('cpConfirmPwd').value = '';
-  } else {
-    renderMeProfile();
+    return;
   }
+
+  // 已设置过密码 → 校验
+  if (!pwd) { alert('请输入密码'); return; }
+  if (String(data.password) !== pwd) { alert('密码错误'); return; }
+
+  currentMember = { id: String(data.id), name: data.name };
+  sessionStorage.setItem('member_name', data.name);
+  renderRecruits();
+  renderMeProfile();
 };
 
 window.switchMeYear = (year) => {
@@ -1639,25 +1710,25 @@ window.submitChangePwd = async () => {
 
   errEl.style.display = 'none';
   pendingFirstLogin = false;
-  pendingOldPassword = '';
   renderMeProfile();
-  alert('密码已保存');
+  alert('密码已设置成功，请牢记');
 };
 
 window.cancelChangePwd = () => {
   currentMember = null;
   sessionStorage.removeItem('member_name');
   pendingFirstLogin = false;
-  pendingOldPassword = '';
   document.getElementById('meChangePwdView').style.display = 'none';
   document.getElementById('meLoginView').style.display = 'block';
   document.getElementById('meTitle').textContent = '我的';
+  renderRecruits();
 };
 
 window.memberLogout = () => {
   currentMember = null;
   sessionStorage.removeItem('member_name');
   closeModal('modal-me');
+  renderRecruits();
 };
 
 window.handleMeClose = () => {
@@ -1665,18 +1736,17 @@ window.handleMeClose = () => {
     currentMember = null;
     sessionStorage.removeItem('member_name');
     pendingFirstLogin = false;
-    pendingOldPassword = '';
     document.getElementById('meChangePwdView').style.display = 'none';
     document.getElementById('meLoginView').style.display = 'block';
     document.getElementById('meTitle').textContent = '我的';
+    renderRecruits();
   }
   closeModal('modal-me');
 };
 
 /* ============ 发起任务 ============ */
 window.openCreateTask = () => {
-  if (!currentMember || !currentMember.name) {
-    window.__pendingCreateTask = true;
+  if (!isLoggedIn()) {
     alert('发起任务需先登录。\n请使用「我的」中队员账号登录后再操作。');
     openMe();
     return;
@@ -1701,7 +1771,7 @@ window.submitCreateTask = async () => {
   const uniformStr = Array.from(document.querySelectorAll('input[name="ct_uniform"]:checked'))
     .map(e => e.value).join(', ');
 
-  if (!creator) return alert('请填写你的真实姓名');
+  if (!creator) return alert('请先登录');
   if (!Array.isArray(globalAllMembers) || globalAllMembers.length === 0) {
     alert('队员名单尚未加载完成，请刷新页面重试；若持续如此请检查网络或联系管理员。');
     return;
